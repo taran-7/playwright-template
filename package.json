@@ -78,7 +78,7 @@
     "eslint": "^9.39.2",
     "eslint-plugin-playwright": "^2.4.0",
     "eslint-plugin-promise": "^7.2.1",
-    "globals": "^16.5.0",
+    "globals": "^17.0.0",
     "prettier": "3.7.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
@@ -86,7 +86,7 @@
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",
-    "googleapis": "^168.0.0",
+    "googleapis": "^170.0.0",
     "lint-staged": "^16.2.7"
   }
 }

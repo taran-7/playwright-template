@@ -48,7 +48,7 @@ jobs:
       USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
 
     steps:
       - name: Checkout
@@ -218,7 +218,7 @@ jobs:
       USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
 
     steps:
       - name: Checkout
@@ -388,7 +388,7 @@ jobs:
       USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
 
     steps:
       - name: Checkout

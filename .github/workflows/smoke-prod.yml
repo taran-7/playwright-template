@@ -1,0 +1,599 @@
+name: Smoke tests
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: "0 1 * * *" # Run every day at 1am UTC
+  workflow_dispatch:
+
+jobs:
+  chrome:
+    name: "Smoke tests in Chrome"
+    runs-on:
+      labels: ubuntu-24.04-4core-16gb
+
+    env:
+      BASE_URL: ${{ matrix.environment == 'prod' && vars.PROD_BASE_URL || matrix.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
+      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
+      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
+      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
+      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
+      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
+      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
+      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
+      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
+      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
+      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
+      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
+      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
+      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
+      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
+      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
+      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
+      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
+      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
+      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
+      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
+      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
+      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
+      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
+      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
+      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
+      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
+      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
+      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
+      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
+      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
+      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+
+    strategy:
+      matrix:
+        environment: [prod]
+
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load environment variables from .env.prod
+        run: |
+          set +x  # Disable command echoing to prevent credential exposure
+          while IFS= read -r line; do
+            if [[ $line =~ ^[A-Z_]+=.* ]]; then
+              echo "$line" >> $GITHUB_ENV
+            fi
+          done < .env.prod
+          set -x  # Re-enable command echoing
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create .auth directory
+        run: mkdir -p .auth
+
+      - name: Install dependencies
+        if: always()
+        run: |
+          npm ci
+          npx playwright install
+          npx playwright install chrome
+          npm install -g @testmo/testmo-cli
+
+      - name: Install jq
+        if: always()
+        run: |
+          apt-get update
+          apt-get install -y jq
+        shell: bash
+
+      - name: Set GitHub Actions URL
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Run smoke tests
+        if: always()
+        run: |
+          test_env=${{ matrix.environment }} npx playwright test -g @smoke --project=chrome --workers=3
+        env:
+          HOME: /root
+
+      - name: Push results to Testmo
+        if: always()
+        run: |
+          browser=Chrome test_env=${{ matrix.environment }} npm run testmo:smoke
+        env:
+          HOME: /root
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-chrome-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 3
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-chrome-${{ github.run_id }}
+          path: results/*.xml
+
+      - name: Parse test-output.json
+        if: always()
+        run: |
+          # Set variables
+          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
+          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
+          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
+          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
+          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
+          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
+          WORKERS=$(jq -r '.config.workers' test-output.json)
+
+          # Output variables
+          echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "WORKERS=$WORKERS" >> $GITHUB_ENV
+
+      - name: Use parsed variables
+        if: always()
+        run: |
+          echo "Total Duration: ${{ env.TOTAL_DURATION }}"
+          echo "Total Tests: ${{ env.TOTAL_TESTS }}"
+          echo "Passed Tests: ${{ env.PASSED_TESTS }}"
+          echo "Failed Tests: ${{ env.FAILED_TESTS }}"
+          echo "Skipped Tests: ${{ env.SKIPPED_TESTS }}"
+          echo "Flaky Tests: ${{ env.FLAKY_TESTS }}"
+
+      - name: Calculate duration
+        if: always()
+        run: |
+          DURATION_MS=${{ env.TOTAL_DURATION }}
+          DURATION_SECONDS=$((DURATION_MS / 1000))
+          DURATION_MINUTES=$((DURATION_SECONDS / 60))
+          DURATION_REMAINING_SECONDS=$((DURATION_SECONDS % 60))
+          echo "DURATION_FORMATTED=${DURATION_MINUTES}m ${DURATION_REMAINING_SECONDS}s" >> $GITHUB_ENV
+
+      - name: Set environment emoji
+        if: always()
+        run: |
+          case "${{ matrix.environment }}" in
+            "prod")
+              echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
+              ;;
+            "beta")
+              echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
+              ;;
+            "test")
+              echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "ENV_EMOJI=🔹" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Notify MS Teams
+        if: always()
+        uses: jdcargile/ms-teams-notification@v1.3
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
+          notification-summary: |
+            Smoke Execution Result |
+            Env ${{ env.ENV_EMOJI }}: ${{ matrix.environment }} |
+            Env: Prod🚀 |
+            Browser: Chrome |
+            Total Tests: ${{ env.TOTAL_TESTS }} |
+            Workers: ${{ env.WORKERS }} |
+            Passed ✅: ${{ env.PASSED_TESTS }} |
+            Failed ❌: ${{ env.FAILED_TESTS }} |
+            Skipped 🏂: ${{ env.SKIPPED_TESTS }} |
+            Flaky 🔄: ${{ env.FLAKY_TESTS }} |
+            Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
+            Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
+          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+
+  firefox:
+    needs: chrome
+    if: always()
+    name: "Smoke tests in Firefox"
+    runs-on:
+      labels: ubuntu-24.04-4core-16gb
+
+    env:
+      BASE_URL: ${{ matrix.environment == 'prod' && vars.PROD_BASE_URL || matrix.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
+      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
+      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
+      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
+      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
+      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
+      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
+      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
+      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
+      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
+      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
+      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
+      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
+      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
+      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
+      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
+      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
+      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
+      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
+      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
+      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
+      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
+      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
+      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
+      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
+      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
+      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
+      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
+      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
+      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
+      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
+      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+
+    strategy:
+      matrix:
+        environment: [prod]
+
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load environment variables from .env.prod
+        run: |
+          set +x  # Disable command echoing to prevent credential exposure
+          while IFS= read -r line; do
+            if [[ $line =~ ^[A-Z_]+=.* ]]; then
+              echo "$line" >> $GITHUB_ENV
+            fi
+          done < .env.prod
+          set -x  # Re-enable command echoing
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create .auth directory
+        run: mkdir -p .auth
+
+      - name: Install dependencies
+        if: always()
+        run: |
+          npm ci
+          npx playwright install
+          npm install -g @testmo/testmo-cli
+
+      - name: Install jq
+        if: always()
+        run: |
+          apt-get update
+          apt-get install -y jq
+        shell: bash
+
+      - name: Set GitHub Actions URL
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Run smoke tests
+        if: always()
+        run: |
+          test_env=${{ matrix.environment }} npx playwright test -g @smoke --project=firefox --workers=3
+        env:
+          HOME: /root
+
+      - name: Push results to Testmo
+        if: always()
+        run: |
+          browser=Firefox test_env=${{ matrix.environment }} npm run testmo:smoke
+        env:
+          HOME: /root
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-firefox-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 3
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-firefox-${{ github.run_id }}
+          path: results/*.xml
+
+      - name: Parse test-output.json
+        if: always()
+        run: |
+          # Set variables
+          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
+          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
+          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
+          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
+          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
+          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
+          WORKERS=$(jq -r '.config.workers' test-output.json)
+
+          # Output variables
+          echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "WORKERS=$WORKERS" >> $GITHUB_ENV
+
+      - name: Use parsed variables
+        if: always()
+        run: |
+          echo "Total Duration: ${{ env.TOTAL_DURATION }}"
+          echo "Total Tests: ${{ env.TOTAL_TESTS }}"
+          echo "Passed Tests: ${{ env.PASSED_TESTS }}"
+          echo "Failed Tests: ${{ env.FAILED_TESTS }}"
+          echo "Skipped Tests: ${{ env.SKIPPED_TESTS }}"
+          echo "Flaky Tests: ${{ env.FLAKY_TESTS }}"
+
+      - name: Calculate duration
+        if: always()
+        run: |
+          DURATION_MS=${{ env.TOTAL_DURATION }}
+          DURATION_SECONDS=$((DURATION_MS / 1000))
+          DURATION_MINUTES=$((DURATION_SECONDS / 60))
+          DURATION_REMAINING_SECONDS=$((DURATION_SECONDS % 60))
+          echo "DURATION_FORMATTED=${DURATION_MINUTES}m ${DURATION_REMAINING_SECONDS}s" >> $GITHUB_ENV
+
+      - name: Set environment emoji
+        if: always()
+        run: |
+          case "${{ matrix.environment }}" in
+            "prod")
+              echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
+              ;;
+            "beta")
+              echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
+              ;;
+            "test")
+              echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "ENV_EMOJI=🔹" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Notify MS Teams
+        if: always()
+        uses: jdcargile/ms-teams-notification@v1.3
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
+          notification-summary: |
+            Smoke Execution Result |
+            Env ${{ env.ENV_EMOJI }}: ${{ matrix.environment }} |
+            Env: Prod🚀 |
+            Browser: Firefox |
+            Total Tests: ${{ env.TOTAL_TESTS }} |
+            Workers: ${{ env.WORKERS }} |
+            Passed ✅: ${{ env.PASSED_TESTS }} |
+            Failed ❌: ${{ env.FAILED_TESTS }} |
+            Skipped 🏂: ${{ env.SKIPPED_TESTS }} |
+            Flaky 🔄: ${{ env.FLAKY_TESTS }} |
+            Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
+            Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
+          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+
+  safari:
+    needs: firefox
+    if: always()
+    name: "Smoke tests in Safari"
+    runs-on:
+      labels: ubuntu-24.04-4core-16gb
+
+    env:
+      BASE_URL: ${{ matrix.environment == 'prod' && vars.PROD_BASE_URL || matrix.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
+      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
+      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
+      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
+      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
+      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
+      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
+      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
+      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
+      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
+      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
+      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
+      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
+      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
+      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
+      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
+      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
+      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
+      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
+      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
+      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
+      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
+      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
+      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
+      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
+      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
+      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
+      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
+      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
+      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
+      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
+      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+
+    strategy:
+      matrix:
+        environment: [prod]
+
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load environment variables from .env.prod
+        run: |
+          set +x  # Disable command echoing to prevent credential exposure
+          while IFS= read -r line; do
+            if [[ $line =~ ^[A-Z_]+=.* ]]; then
+              echo "$line" >> $GITHUB_ENV
+            fi
+          done < .env.prod
+          set -x  # Re-enable command echoing
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create .auth directory
+        run: mkdir -p .auth
+
+      - name: Install dependencies
+        if: always()
+        run: |
+          npm ci
+          npx playwright install
+          npm install -g @testmo/testmo-cli
+
+      - name: Install jq
+        if: always()
+        run: |
+          apt-get update
+          apt-get install -y jq
+        shell: bash
+
+      - name: Set GitHub Actions URL
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Run smoke tests
+        if: always()
+        run: |
+          test_env=${{ matrix.environment }} npx playwright test -g @smoke --project=safari --workers=3
+        env:
+          HOME: /root
+
+      - name: Push results to Testmo
+        if: always()
+        run: |
+          browser=Safari test_env=${{ matrix.environment }} npm run testmo:smoke
+        env:
+          HOME: /root
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-safari-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 3
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-safari-${{ github.run_id }}
+          path: results/*.xml
+
+      - name: Parse test-output.json
+        if: always()
+        run: |
+          # Set variables
+          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
+          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
+          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
+          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
+          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
+          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
+          WORKERS=$(jq -r '.config.workers' test-output.json)
+
+          # Output variables
+          echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "WORKERS=$WORKERS" >> $GITHUB_ENV
+
+      - name: Use parsed variables
+        if: always()
+        run: |
+          echo "Total Duration: ${{ env.TOTAL_DURATION }}"
+          echo "Total Tests: ${{ env.TOTAL_TESTS }}"
+          echo "Passed Tests: ${{ env.PASSED_TESTS }}"
+          echo "Failed Tests: ${{ env.FAILED_TESTS }}"
+          echo "Skipped Tests: ${{ env.SKIPPED_TESTS }}"
+          echo "Flaky Tests: ${{ env.FLAKY_TESTS }}"
+
+      - name: Calculate duration
+        if: always()
+        run: |
+          DURATION_MS=${{ env.TOTAL_DURATION }}
+          DURATION_SECONDS=$((DURATION_MS / 1000))
+          DURATION_MINUTES=$((DURATION_SECONDS / 60))
+          DURATION_REMAINING_SECONDS=$((DURATION_SECONDS % 60))
+          echo "DURATION_FORMATTED=${DURATION_MINUTES}m ${DURATION_REMAINING_SECONDS}s" >> $GITHUB_ENV
+
+      - name: Set environment emoji
+        if: always()
+        run: |
+          case "${{ matrix.environment }}" in
+            "prod")
+              echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
+              ;;
+            "beta")
+              echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
+              ;;
+            "test")
+              echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "ENV_EMOJI=🔹" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Notify MS Teams
+        if: always()
+        uses: jdcargile/ms-teams-notification@v1.3
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
+          notification-summary: |
+            Smoke Execution Result |
+            Env ${{ env.ENV_EMOJI }}: ${{ matrix.environment }} |
+            Env: Prod🚀 |
+            Browser: Safari |
+            Total Tests: ${{ env.TOTAL_TESTS }} |
+            Workers: ${{ env.WORKERS }} |
+            Passed ✅: ${{ env.PASSED_TESTS }} |
+            Failed ❌: ${{ env.FAILED_TESTS }} |
+            Skipped 🏂: ${{ env.SKIPPED_TESTS }} |
+            Flaky 🔄: ${{ env.FLAKY_TESTS }} |
+            Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
+            Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
+          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}

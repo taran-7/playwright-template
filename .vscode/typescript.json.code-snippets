@@ -1,0 +1,20 @@
+{
+  "Print to console": {
+    "scope": "javascript,typescript",
+    "prefix": "log",
+    "body": ["console.log(\"$1\")", "$2"],
+    "description": "Log output to console",
+  },
+  "await app.page.pause": {
+    "scope": "javascript,typescript",
+    "prefix": "pause",
+    "body": ["await app.page.pause();"],
+    "description": "Inserts await app.page.pause()",
+  },
+  "await app.page.waitForTimeout": {
+    "scope": "javascript,typescript",
+    "prefix": "ati",
+    "body": ["await app.page.waitForTimeout($1);"],
+    "description": "Inserts await app.page.waitForTimeout() with a placeholder for the timeout duration",
+  },
+}

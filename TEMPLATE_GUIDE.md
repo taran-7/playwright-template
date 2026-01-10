@@ -6,14 +6,15 @@ This guide provides detailed instructions for using this Playwright testing fram
 
 1. [Quick Start](#quick-start)
 2. [Project Architecture](#project-architecture)
-3. [Adding a New Page Object](#adding-a-new-page-object)
-4. [Adding a New API Controller](#adding-a-new-api-controller)
-5. [Adding a Component](#adding-a-component)
-6. [Test Types](#test-types)
-7. [Tags and Filtering](#tags-and-filtering)
-8. [Environment Configuration](#environment-configuration)
-9. [NPM Scripts Reference](#npm-scripts-reference)
-10. [Best Practices](#best-practices)
+3. [Фікстури (Fixtures) — Детальний опис](#фікстури-fixtures--детальний-опис)
+4. [Adding a New Page Object](#adding-a-new-page-object)
+5. [Adding a New API Controller](#adding-a-new-api-controller)
+6. [Adding a Component](#adding-a-component)
+7. [Test Types](#test-types)
+8. [Tags and Filtering](#tags-and-filtering)
+9. [Environment Configuration](#environment-configuration)
+10. [NPM Scripts Reference](#npm-scripts-reference)
+11. [Best Practices](#best-practices)
 
 ---
 
@@ -115,6 +116,209 @@ npm run run:by-id  # Edit the ID in package.json first
 | **Components**   | Reusable UI elements (header, modals, notifications)         |
 | **Controllers**  | API operations grouped by domain                             |
 | **Tags**         | Test metadata for filtering (@smoke, @regression, @critical) |
+
+---
+
+## Фікстури (Fixtures) — Детальний опис
+
+### Що таке фікстури?
+
+**Фікстури** в Playwright — це механізм **dependency injection** (впровадження залежностей), який дозволяє автоматично створювати, передавати в тести та очищувати об'єкти/ресурси.
+
+У цьому проекті визначено дві основні фікстури у файлі `customFixture.ts`:
+
+| Фікстура | Призначення |
+|----------|-------------|
+| `api` | Прямі HTTP-запити без браузера (швидко!) |
+| `app` | Взаємодія з UI через Page Objects |
+
+---
+
+### 📦 Фікстура `api`
+
+**Визначення:** `customFixture.ts`
+
+```typescript
+api: async ({ playwright }, use) => {
+  const requestContext = await playwright.request.newContext({
+    baseURL: process.env.BASE_URL,
+  });
+
+  const api = new API(requestContext);
+  await use(api);
+  await requestContext.dispose();  // Очистка після тесту
+}
+```
+
+#### Життєвий цикл:
+
+| Крок | Опис |
+|------|------|
+| 1 | Створює `APIRequestContext` для HTTP-запитів |
+| 2 | Інстанціює клас `API` з усіма контролерами |
+| 3 | Передає в тест через параметр `api` |
+| 4 | Після тесту — закриває контекст |
+
+#### Клас `API` (`api/api.ts`) включає:
+- **`authorizationController`** — авторизаційні операції
+- **`presentationController`** — CRUD для презентацій
+- **`getUserTokens(userKey)`** — отримання токенів для користувача
+
+#### Приклад використання:
+
+```typescript
+test("API test", async ({ api }) => {
+  const { token } = await api.getUserTokens("manager");
+  const headers = extraHTTPHeaders(token);
+  const response = await api.presentationController.getAll(headers);
+});
+```
+
+---
+
+### 🖥️ Фікстура `app`
+
+**Визначення:** `customFixture.ts`
+
+```typescript
+app: async ({ browser, api }, use, testInfo) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const app = new Application(page, api);  // api інжектиться сюди!
+
+  await use(app);
+
+  // Очистка
+  await page.close();
+  await context.close();
+}
+```
+
+#### Життєвий цикл:
+
+| Крок | Опис |
+|------|------|
+| 1 | Створює новий браузерний контекст і сторінку |
+| 2 | Інстанціює `Application` з `page` та `api` |
+| 3 | Передає в тест через параметр `app` |
+| 4 | Після тесту — закриває сторінку та контекст |
+| 5 | Перевіряє на memory leaks (відкриті контексти) |
+
+#### Клас `Application` (`app/app.ts`) включає:
+
+**Page Objects:**
+- `loginPage` — сторінка логіну
+- `explorePage` — головна сторінка
+
+**Helpers:**
+- `generalHelpers` — загальні допоміжні методи
+
+**Методи автентифікації:**
+- `authAsUser(userKey)` — швидка автентифікація через cookies (без UI!)
+- `clearAuth()` — очистка cookies
+
+#### Приклад використання:
+
+```typescript
+test("UI test", async ({ app }) => {
+  await app.authAsUser("manager");  // Швидкий логін через cookies
+  await app.navigateToBasePath(app.explorePage.exploreUrl);
+  await expect(app.explorePage.searchField).toBeVisible();
+});
+```
+
+---
+
+### 🌟 Переваги фікстур
+
+#### 1. Розділення відповідальності
+
+Кожна фікстура має чітке призначення:
+- `api` — для бекенд-операцій
+- `app` — для UI-взаємодій
+
+#### 2. Швидка автентифікація
+
+```typescript
+// Замість повільного UI логіну (3-5 секунд):
+await app.loginPage.login(email, password);
+
+// Використовуй швидкий cookie injection (~100ms):
+await app.authAsUser("manager");
+```
+
+#### 3. Dependency Injection
+
+- `api` інжектиться в `app` автоматично
+- Це дозволяє `app.authAsUser()` викликати `api.getUserTokens()` під капотом
+
+#### 4. Автоматичне очищення
+
+Після кожного тесту:
+- Закриваються сторінки та контексти
+- Звільняються API-ресурси
+- Виявляються memory leaks
+
+#### 5. Патерн Page Object Model
+
+```typescript
+// Замість прямого доступу до елементів:
+await page.locator("#email").fill(email);
+
+// Використовуй Page Objects:
+await app.loginPage.emailField.fill(email);
+```
+
+---
+
+### 🔄 Типові сценарії використання
+
+#### Сценарій 1: Чистий UI тест
+
+```typescript
+test("Login via UI", async ({ app }) => {
+  await app.navigateToBasePath(app.loginPage.loginUrl);
+  await app.loginPage.login(email, password);
+});
+```
+
+#### Сценарій 2: UI тест зі швидкою автентифікацією
+
+```typescript
+test("Dashboard test", async ({ app }) => {
+  await app.authAsUser("manager");  // Cookie injection
+  await app.navigateToBasePath(app.explorePage.exploreUrl);
+  await expect(app.explorePage.searchField).toBeVisible();
+});
+```
+
+#### Сценарій 3: API тест
+
+```typescript
+test("API test", async ({ api }) => {
+  const { token } = await api.getUserTokens("manager");
+  const headers = extraHTTPHeaders(token);
+  // Виклик API контролера...
+});
+```
+
+#### Сценарій 4: Гібридний тест (API setup + UI verification)
+
+```typescript
+test("Full flow", async ({ api, app }) => {
+  // 1. Створюємо дані через API (швидко)
+  const { token } = await api.getUserTokens("manager");
+  const headers = extraHTTPHeaders(token);
+  // await api.contentController.create(...)
+
+  // 2. Автентифікуємось
+  await app.authAsUser("manager");
+
+  // 3. Перевіряємо в UI
+  await app.navigateToBasePath("/dashboard");
+  await expect(app.page.getByText("Created Content")).toBeVisible();
+});
+```
 
 ---
 

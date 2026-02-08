@@ -1,119 +1,112 @@
-# 🎭 Playwright Test Framework Template
+# 🐍 Playwright Python Test Framework
 
-A production-ready Playwright testing framework with Page Object Model, API testing, and E2E patterns.
+A production-ready Playwright testing framework migrated to Python, featuring Page Object Model, API Controllers, and E2E patterns using `pytest`.
 
 ## ✨ Features
 
-- **Page Object Model** — Clean separation of test logic and UI interactions
-- **API Controllers** — Organized backend testing with typed HTTP clients
-- **Custom Fixtures** — `app` (UI) and `api` (backend) injected into every test
-- **Three Test Types** — UI, API, and E2E tests with examples
-- **Multi-Environment** — Test, Beta, Production configurations
-- **Multi-Browser** — Chrome, Firefox, Safari support
-- **CI/CD Ready** — GitHub Actions annotations, JUnit reports
+- **Page Object Model** — Clean separation of test logic and UI interactions (`app/pages`)
+- **API Controllers** — Organized backend testing with typed HTTP clients (`api/controllers`)
+- **Pytest Fixtures** — `app` (UI) and `api` (backend) injected into every test via `conftest.py`
+- **Synchronous API** — Uses `playwright.sync_api` for stable and straightforward test execution
+- **Multi-Environment** — Environment configuration via `.env` files and Pydantic
+- **Reporting** — HTML reports via `pytest-html`
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Prerequisites
+
+- Python 3.8+
+- pip
+
+### 2. Setup Virtual Environment
 
 ```bash
-npm install
-npx playwright install
+# MacOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+# Windows
+python -m venv venv
+venv\Scripts\activate
 ```
 
-### 2. Configure Environment
+### 3. Install Dependencies
 
 ```bash
-# Copy example environment file
-cp .env.example .env.test
-
-# Edit with your test credentials
-nano .env.test
+pip install -r python_playwright/requirements.txt
+playwright install
 ```
 
-### 3. Run Tests
+### 4. Configure Environment
+
+Create environment files as needed (e.g., `.env.test`). The `config.py` uses `pydantic-settings` to load these.
 
 ```bash
-# Run all UI tests on Chrome
-npm run test:chrome
+# Example .env.test
+BASE_URL=https://example.com
+MANAGER_USERNAME=admin
+MANAGER_PASSWORD=secret
+```
 
-# Run with visual UI (debugging)
-npm run test:ui-mode
+### 5. Run Tests
 
-# Run smoke tests
-npm run smoke:test
+```bash
+# Run all tests
+pytest python_playwright/tests
 
 # Run API tests only
-npm run api:test
+pytest -m api python_playwright/tests
+
+# Run UI tests only
+pytest -m ui python_playwright/tests
+
+# Run E2E tests
+pytest -m e2e python_playwright/tests
 ```
 
 ## 📁 Project Structure
 
-```
-├── customFixture.ts          # Custom fixtures (app, api)
-├── playwright.config.ts      # Playwright configuration
-├── api/                      # API controllers
-├── app/                      # Page objects & components
-├── constants/                # Configuration constants
-├── models/                   # TypeScript interfaces
-├── tests/
-│   ├── ui-tests/             # Browser tests
-│   ├── api-tests/            # API tests
-│   └── e2e-tests/            # End-to-end tests
-└── utils/                    # Utilities
-```
-
-## 🧪 Test Types
-
-| Type | Location | When to Use |
-|------|----------|-------------|
-| **UI** | `tests/ui-tests/` | User interactions, visual testing |
-| **API** | `tests/api-tests/` | Backend validation, fast execution |
-| **E2E** | `tests/e2e-tests/` | Full workflows, integration |
-
-## 🏷️ Test Tags
-
-```typescript
-test("Example @1234 @ui @smoke @critical", async ({ app }) => {
-  // @1234     - Test case ID
-  // @ui       - UI test type
-  // @smoke    - Quick sanity check
-  // @critical - Business-critical
-});
+```text
+python_playwright/
+├── config.py              # Environment configuration (Pydantic)
+├── conftest.py            # Global Fixtures (api, app, auth)
+├── pytest.ini             # Pytest configuration & markers
+├── requirements.txt       # Project dependencies
+├── api/                   # API Layer
+│   ├── api_manager.py     # API Aggregator
+│   ├── base_api_client.py # Base Request Client
+│   └── controllers/       # Domain controllers (Auth, Presentation)
+├── app/                   # UI Layer
+│   ├── application.py     # App Aggregator
+│   ├── base_page.py       # Base Page Object
+│   ├── components/        # Shared components (Header, Notification)
+│   └── pages/             # Page Objects (Login, Explore)
+└── tests/                 # Test Suites
+    ├── api_tests/
+    ├── ui_tests/
+    └── e2e_tests/
 ```
 
-Run by tag:
+## 🏷️ Test Markers
+
+Tests are marked in `pytest.ini` for easy filtering:
+
+- `@api`: API tests
+- `@ui`: UI tests
+- `@e2e`: End-to-end tests
+- `@smoke`: Critical path verification
+- `@regression`: Full regression suite
+
+Run specific marker:
 ```bash
-npm run smoke:test      # @smoke tests
-npm run critical:test   # @critical tests
-npm run regression:test # @regression tests
+pytest -m "api and smoke" python_playwright/tests
 ```
-
-## 📖 Documentation
-
-See **[TEMPLATE_GUIDE.md](TEMPLATE_GUIDE.md)** for detailed instructions on:
-- Adding new page objects
-- Adding API controllers
-- Creating components
-- Environment configuration
-- Best practices
 
 ## 🛠️ Common Commands
 
 | Command | Description |
 |---------|-------------|
-| `npm run test:chrome` | Run on Chrome |
-| `npm run test:ui-mode` | Debug with UI |
-| `npm run codegen` | Record new tests |
-| `npm run report:local` | Open HTML report |
-| `npm run format` | Format code |
-| `npm run lint:fix` | Fix lint issues |
-
-## 📋 Requirements
-
-- Node.js 18+
-- npm 9+
-
-## 📄 License
-
-ISC
+| `pytest` | Run all tests |
+| `pytest --headed` | Run UI tests in headed mode (visible browser) |
+| `pytest --slowmo 1000` | Run with 1s delay between actions |
+| `pytest --html=report.html` | Generate HTML report |

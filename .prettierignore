@@ -1,6 +1,0 @@
-test-results/
-/playwright-report/*
-/state-storage-files/
-/README.md
-test-data/
-api/api-controllers/email.controller.ts

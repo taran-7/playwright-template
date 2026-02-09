@@ -1,41 +1,40 @@
-# Makefile for Playwright Tests
+PYTHON ?= python3
+PYTEST = $(PYTHON) -m pytest -c pytest.ini
 
-# Базова змінна для запуску pytest (вказує на конфіг файл)
-PYTEST = pytest -c pytest.ini
+.PHONY: install install-browsers test test-integration test-ui test-api test-e2e test-headed lint format type-check clean
 
-# Запустити всі тести
+install:
+	$(PYTHON) -m pip install -r requirements.txt
+
+install-browsers:
+	$(PYTHON) -m playwright install --with-deps chromium
+
 test:
 	$(PYTEST)
 
-# Запустити тільки UI тести
+test-integration:
+	$(PYTEST) --run-integration
+
 test-ui:
-	$(PYTEST) -m ui
+	$(PYTEST) -m ui --run-integration
 
-# Запустити тільки API тести
 test-api:
-	$(PYTEST) -m api
+	$(PYTEST) -m api --run-integration
 
-# Запустити тільки E2E тести
 test-e2e:
-	$(PYTEST) -m e2e
+	$(PYTEST) -m e2e --run-integration
 
-# Запустити UI тести з видимим браузером (headed)
 test-headed:
-	$(PYTEST) -m ui --headed --slowmo 500
+	$(PYTEST) -m ui --run-integration --headed --slowmo 500
 
-# Запустити конкретний файл (передайте PATH=шлях/до/файлу)
-test-file:
-	$(PYTEST) $(PATH)
+lint:
+	$(PYTHON) -m ruff check .
 
-# Запустити конкретний тест test_google_ui з видимим браузером Chrome
-test-google:
-	pytest tests/ui_tests/test_google_ui.py --headed --slowmo 1000 --browser-channel chrome
+format:
+	$(PYTHON) -m black .
 
-# Встановити залежності
-install:
-	pip install -r requirements.txt
-	playwright install
+type-check:
+	$(PYTHON) -m mypy .
 
-# Очистити кеш та звіти
 clean:
-	rm -rf .pytest_cache report.html assets/
+	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov report.html assets/ python_playwright/assets/

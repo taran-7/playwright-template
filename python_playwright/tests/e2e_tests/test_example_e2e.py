@@ -1,9 +1,12 @@
 import pytest
 from playwright.sync_api import expect
+
 from python_playwright.constants.headers import Headers
 
 
-@pytest.mark.e2e
+pytestmark = [pytest.mark.e2e, pytest.mark.integration]
+
+
 @pytest.mark.critical
 def test_complete_workflow_create_view_verify(app, api):
     """
@@ -18,8 +21,6 @@ def test_complete_workflow_create_view_verify(app, api):
     
     created_id = api.presentation_controller.make_presentation_id(headers)
     assert created_id is not None
-    print(f"Created resource: {created_id}")
-    
     try:
         # 2. UI Interaction
         app.auth_as_user("manager")

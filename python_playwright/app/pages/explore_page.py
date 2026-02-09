@@ -1,4 +1,5 @@
 from playwright.sync_api import Page, Locator, expect
+import json
 from python_playwright.app.base_page import BasePage
 from python_playwright.app.components.notification import NotificationComponent
 from python_playwright.app.components.header import HeaderComponent
@@ -50,4 +51,11 @@ class ExplorePage(BasePage):
 
     def mock_explore_data(self, url: str, mock_response: dict):
         """Mock explore page data."""
-        self.page.route(url, lambda route: route.fulfill(body=str(mock_response))) # Note: passing simplified string body
+        self.page.route(
+            url,
+            lambda route: route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(mock_response),
+            ),
+        )

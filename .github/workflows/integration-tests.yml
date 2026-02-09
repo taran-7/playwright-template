@@ -1,0 +1,47 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment profile (loads .env.<environment>)"
+        required: true
+        default: "test"
+        type: choice
+        options:
+          - test
+          - beta
+          - prod
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      ENV: ${{ inputs.environment }}
+      BASE_URL: ${{ vars.BASE_URL }}
+      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
+      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
+      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
+      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: python_playwright/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r python_playwright/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run integration tests
+        run: python -m pytest -c python_playwright/pytest.ini --run-integration python_playwright/tests

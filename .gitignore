@@ -1,56 +1,56 @@
-# Ignore node_modules directory
-node_modules/
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
 
-# Ignore IDE specific files (e.g., JetBrains IntelliJ IDEA)
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE/editor files
 .idea/
-
-# Ignore VS Code local settings
 .vscode/settings.json
 .vscode/tasks.json
 
-# Ignore local wrapper scripts
-run-with-nvm.sh
-npm-nvm.sh
-
-# Ignore test results directory and its subdirectories
-test-results/
-results/
-test-output.json
-
-# Ignore Playwright report directory and its subdirectories
-playwright-report/
-
-# Ignore specific file
-index.html
-
-# Ignore macOS DS_Store files
+# OS files
 .DS_Store
 
-# Ignore tokens.json file
-tokens.json
+# Test reports and artifacts
+report.html
+python_playwright/report.html
+assets/
+python_playwright/assets/
+test-results/
+results/
+playwright-report/
+test-output.json
 
-# Ignore any directory named "download" and its contents
+# Playwright auth/state files
+.auth/
+state-storage-files/
 **/download/
 
-# Ignore big files
-test-data/video-data/large-video-5_1Gb.mp4
-
-# Ignore files in state-storage-files directory
-/state-storage-files/
-
-# Ignore environment configuration file
-.env.local
+# Environment files (keep only templates)
 .env
-
-# Keep .env.example for template
+.env.local
+.env.test
+.env.beta
+.env.prod
 !.env.example
 
-# Ignore sandbox tests
-**/sandbox.test.ts
-
-# Ignore auth data
-.auth/*
-
-# Ignore Gmail API credentials
-utils/credentials.json
-utils/token.json
+# Misc
+node_modules/
+tokens.json

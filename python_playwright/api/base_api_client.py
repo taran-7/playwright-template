@@ -1,12 +1,21 @@
 from playwright.sync_api import APIRequestContext, APIResponse
 from python_playwright.config import settings
 
+
 class BaseApiClient:
     def __init__(self, request_context: APIRequestContext):
         self.request = request_context
         self.base_url = settings.BASE_URL
 
-    def send(self, method: str, path: str, headers: dict = None, data=None, form=None, params=None) -> APIResponse:
+    def send(
+        self,
+        method: str,
+        path: str,
+        headers: dict | None = None,
+        data=None,
+        form=None,
+        params=None,
+    ) -> APIResponse:
         """
         Send HTTP request to internal API (uses BASE_URL).
         """
@@ -15,15 +24,15 @@ class BaseApiClient:
         else:
             url = path
 
-        if method.lower() == "get":
+        method = method.lower()
+        if method == "get":
             return self.request.get(url, headers=headers, params=params)
-        elif method.lower() == "post":
+        if method == "post":
             return self.request.post(url, headers=headers, data=data, form=form, params=params)
-        elif method.lower() == "put":
+        if method == "put":
             return self.request.put(url, headers=headers, data=data, form=form, params=params)
-        elif method.lower() == "delete":
+        if method == "delete":
             return self.request.delete(url, headers=headers, data=data, form=form, params=params)
-        elif method.lower() == "patch":
+        if method == "patch":
             return self.request.patch(url, headers=headers, data=data, form=form, params=params)
-        else:
-            raise ValueError(f"Unsupported HTTP method: {method}")
+        raise ValueError(f"Unsupported HTTP method: {method}")

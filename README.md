@@ -1,112 +1,120 @@
-# 🐍 Playwright Python Test Framework
+# Playwright Python Template
 
-A production-ready Playwright testing framework migrated to Python, featuring Page Object Model, API Controllers, and E2E patterns using `pytest`.
+Production-oriented starter for UI, API and E2E testing with:
+- `pytest`
+- `playwright` (sync API)
+- Page Object Model
+- API controller layer
+- strict lint/type/format checks
 
-## ✨ Features
-
-- **Page Object Model** — Clean separation of test logic and UI interactions (`app/pages`)
-- **API Controllers** — Organized backend testing with typed HTTP clients (`api/controllers`)
-- **Pytest Fixtures** — `app` (UI) and `api` (backend) injected into every test via `conftest.py`
-- **Synchronous API** — Uses `playwright.sync_api` for stable and straightforward test execution
-- **Multi-Environment** — Environment configuration via `.env` files and Pydantic
-- **Reporting** — HTML reports via `pytest-html`
-
-## 🚀 Quick Start
-
-### 1. Prerequisites
-
-- Python 3.8+
-- pip
-
-### 2. Setup Virtual Environment
-
-```bash
-# MacOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-
-# Windows
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r python_playwright/requirements.txt
-playwright install
-```
-
-### 4. Configure Environment
-
-Create environment files as needed (e.g., `.env.test`). The `config.py` uses `pydantic-settings` to load these.
-
-```bash
-# Example .env.test
-BASE_URL=https://example.com
-MANAGER_USERNAME=admin
-MANAGER_PASSWORD=secret
-```
-
-### 5. Run Tests
-
-```bash
-# Run all tests
-pytest python_playwright/tests
-
-# Run API tests only
-pytest -m api python_playwright/tests
-
-# Run UI tests only
-pytest -m ui python_playwright/tests
-
-# Run E2E tests
-pytest -m e2e python_playwright/tests
-```
-
-## 📁 Project Structure
+## Project layout
 
 ```text
 python_playwright/
-├── config.py              # Environment configuration (Pydantic)
-├── conftest.py            # Global Fixtures (api, app, auth)
-├── pytest.ini             # Pytest configuration & markers
-├── requirements.txt       # Project dependencies
-├── api/                   # API Layer
-│   ├── api_manager.py     # API Aggregator
-│   ├── base_api_client.py # Base Request Client
-│   └── controllers/       # Domain controllers (Auth, Presentation)
-├── app/                   # UI Layer
-│   ├── application.py     # App Aggregator
-│   ├── base_page.py       # Base Page Object
-│   ├── components/        # Shared components (Header, Notification)
-│   └── pages/             # Page Objects (Login, Explore)
-└── tests/                 # Test Suites
-    ├── api_tests/
-    ├── ui_tests/
-    └── e2e_tests/
+├── api/                    # API clients/controllers
+├── app/                    # Page objects and components
+├── constants/              # Endpoints, headers, users
+├── tests/
+│   ├── api_tests/
+│   ├── e2e_tests/
+│   ├── ui_tests/
+│   └── unit_tests/
+├── conftest.py             # Shared fixtures and integration gates
+├── config.py               # Env-aware settings (ENV or test_env)
+├── pytest.ini              # Pytest configuration and markers
+├── Makefile                # Common developer commands
+└── requirements.txt
 ```
 
-## 🏷️ Test Markers
+## Quick start
 
-Tests are marked in `pytest.ini` for easy filtering:
-
-- `@api`: API tests
-- `@ui`: UI tests
-- `@e2e`: End-to-end tests
-- `@smoke`: Critical path verification
-- `@regression`: Full regression suite
-
-Run specific marker:
+1. Create and activate virtual env:
 ```bash
-pytest -m "api and smoke" python_playwright/tests
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-## 🛠️ Common Commands
+2. Install dependencies and browser:
+```bash
+pip install -r python_playwright/requirements.txt
+python -m playwright install --with-deps chromium
+```
 
-| Command | Description |
-|---------|-------------|
-| `pytest` | Run all tests |
-| `pytest --headed` | Run UI tests in headed mode (visible browser) |
-| `pytest --slowmo 1000` | Run with 1s delay between actions |
-| `pytest --html=report.html` | Generate HTML report |
+3. Create environment file:
+```bash
+cp .env.example .env.test
+```
+
+4. Run tests:
+```bash
+# Safe default: runs non-integration tests
+python -m pytest -c python_playwright/pytest.ini python_playwright/tests
+
+# Live tests (UI/API/E2E against configured environment)
+ENV=test python -m pytest -c python_playwright/pytest.ini --run-integration python_playwright/tests
+```
+
+## Markers and execution model
+
+- `integration`: live tests requiring real `BASE_URL` + credentials
+- by default integration tests are skipped
+- enable with `--run-integration`
+
+Main markers:
+- `api`
+- `ui`
+- `e2e`
+- `smoke`
+- `regression`
+- `critical`
+
+Examples:
+```bash
+python -m pytest -c python_playwright/pytest.ini -m "api and smoke" --run-integration
+python -m pytest -c python_playwright/pytest.ini -m ui --run-integration --headed
+```
+
+## Environment configuration
+
+Settings are loaded from `.env.<env>` where `<env>` is:
+- `ENV` (preferred), or
+- `test_env` (legacy fallback), default `test`
+
+Required variables for integration tests:
+- `BASE_URL`
+- `MANAGER_USERNAME`
+- `MANAGER_PASSWORD`
+
+## Quality gates
+
+Configured via `pyproject.toml`:
+- `ruff` (lint + import sorting)
+- `black` (format)
+- `mypy` (type checks)
+
+Commands:
+```bash
+python -m ruff check python_playwright
+python -m black --check python_playwright
+python -m mypy python_playwright
+```
+
+## Makefile shortcuts
+
+Run from `python_playwright/`:
+```bash
+make install
+make install-browsers
+make test
+make test-integration
+make test-ui
+make lint
+make format
+make type-check
+```
+
+## CI
+
+GitHub Actions:
+- `.github/workflows/python-ci.yml`: lint, format-check, mypy, tests (without integration)
+- `.github/workflows/integration-tests.yml`: manual integration run

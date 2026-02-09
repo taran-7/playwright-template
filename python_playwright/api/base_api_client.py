@@ -1,4 +1,7 @@
+from typing import Any
+
 from playwright.sync_api import APIRequestContext, APIResponse
+
 from python_playwright.config import settings
 
 
@@ -11,18 +14,15 @@ class BaseApiClient:
         self,
         method: str,
         path: str,
-        headers: dict | None = None,
-        data=None,
-        form=None,
-        params=None,
+        headers: dict[str, str] | None = None,
+        data: Any = None,
+        form: Any = None,
+        params: dict[str, Any] | None = None,
     ) -> APIResponse:
         """
         Send HTTP request to internal API (uses BASE_URL).
         """
-        if not path.startswith("http"):
-            url = f"{self.base_url}{path}"
-        else:
-            url = path
+        url = f"{self.base_url}{path}" if not path.startswith("http") else path
 
         method = method.lower()
         if method == "get":

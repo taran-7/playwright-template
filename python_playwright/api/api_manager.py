@@ -3,10 +3,10 @@ from playwright.sync_api import APIRequestContext
 from python_playwright.api.base_api_client import BaseApiClient
 from python_playwright.api.controllers.auth_controller import AuthorizationController
 from python_playwright.api.controllers.presentation_controller import PresentationController
+from python_playwright.config import settings
 from python_playwright.constants.api_endpoints import Endpoints
 from python_playwright.constants.headers import Headers
 from python_playwright.constants.users import Users
-from python_playwright.config import settings
 
 
 class ApiManager(BaseApiClient):

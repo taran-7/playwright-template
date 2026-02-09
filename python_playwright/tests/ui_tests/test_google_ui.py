@@ -1,17 +1,18 @@
 import pytest
-from playwright.sync_api import Page, expect
 from faker import Faker
+from playwright.sync_api import Page, expect
 
 pytestmark = [pytest.mark.ui, pytest.mark.integration]
 
 
-def test_google_search(page: Page):
+def test_google_search(page: Page) -> None:
     fake = Faker()
     random_text = fake.sentence()
 
     page.goto("https://google.com.ua")
 
-    search_input = page.locator("textarea[name='q']").or_(page.locator("input[name='q']"))
+    search_input = page.locator("textarea[name='q']").or_(
+        page.locator("input[name='q']"))
 
     expect(search_input).to_be_visible()
 

@@ -8,7 +8,8 @@ pytestmark = [pytest.mark.ui, pytest.mark.integration]
 
 @pytest.mark.login
 @pytest.mark.smoke
-def test_user_can_see_login_form_elements(app):
+# type: ignore[no-untyped-def]
+def test_user_can_see_login_form_elements(app) -> None:
     """
     Basic UI test example - checking visible elements.
     """
@@ -20,7 +21,8 @@ def test_user_can_see_login_form_elements(app):
 
 
 @pytest.mark.login
-def test_user_can_login_with_valid_credentials_via_ui(app):
+# type: ignore[no-untyped-def]
+def test_user_can_login_with_valid_credentials_via_ui(app) -> None:
     """
     Test with UI login action.
     """
@@ -34,7 +36,8 @@ def test_user_can_login_with_valid_credentials_via_ui(app):
 
 @pytest.mark.explore
 @pytest.mark.smoke
-def test_authenticated_user_can_see_explore_page(app):
+# type: ignore[no-untyped-def]
+def test_authenticated_user_can_see_explore_page(app) -> None:
     """
     Test with Token Authentication (bypass UI login).
     """
@@ -46,7 +49,8 @@ def test_authenticated_user_can_see_explore_page(app):
 
 
 @pytest.mark.explore
-def test_user_can_open_account_menu(app):
+# type: ignore[no-untyped-def]
+def test_user_can_open_account_menu(app) -> None:
     """
     Test interaction with header component.
     """

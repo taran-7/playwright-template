@@ -1,5 +1,5 @@
-from playwright.sync_api import APIResponse, expect
 from faker import Faker
+from playwright.sync_api import APIResponse, expect
 
 from python_playwright.api.base_api_client import BaseApiClient
 from python_playwright.constants.api_endpoints import Endpoints
@@ -29,18 +29,16 @@ class PresentationController(BaseApiClient):
         return self.send(
             method="get",
             path=f"{Endpoints.PRESENTATIONS_ID}?presentationId={presentation_id}",
-            headers=headers
+            headers=headers,
         )
 
     def get_all_presentations(self, headers: dict) -> APIResponse:
         """Get all presentations for current user."""
-        return self.send(
-            method="get",
-            path=Endpoints.PRESENTATION_API,
-            headers=headers
-        )
+        return self.send(method="get", path=Endpoints.PRESENTATION_API, headers=headers)
 
-    def get_comments_info(self, headers: dict, presentation_id: str, page: int = 0, size: int = 10):
+    def get_comments_info(
+        self, headers: dict, presentation_id: str, page: int = 0, size: int = 10
+    ) -> dict:
         """Get comments for a presentation."""
         response = self.send(
             method="get",
@@ -49,7 +47,8 @@ class PresentationController(BaseApiClient):
         )
 
         if response.status != 200:
-            raise RuntimeError(f"Failed to get comments. Status: {response.status}")
+            raise RuntimeError(
+                f"Failed to get comments. Status: {response.status}")
 
         return response.json()
 
@@ -84,17 +83,17 @@ class PresentationController(BaseApiClient):
 
         return response
 
-    def get_access_control_groups(self, headers: dict):
+    def get_access_control_groups(self, headers: dict) -> dict:
         """Get access control groups."""
         response = self.send("get", Endpoints.GROUPS, headers)
         expect(response).to_be_ok()
         return response.json()
 
-    def set_direct_access_to_presentation(self, headers: dict, presentation_id: str):
+    def set_direct_access_to_presentation(self, headers: dict, presentation_id: str) -> APIResponse:
         """Set direct access to presentation."""
         groups = self.get_access_control_groups(headers)
         group_id = groups["groups"][0]["groupId"]
-        
+
         response = self.send(
             method="put",
             path=Endpoints.PRESENTATIONS_API_ACCESS,
@@ -110,5 +109,5 @@ class PresentationController(BaseApiClient):
             method="post",
             path=Endpoints.PRESENTATION_COPY,
             headers=headers,
-            data={"presentationId": presentation_id}
+            data={"presentationId": presentation_id},
         )

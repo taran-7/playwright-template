@@ -1,12 +1,15 @@
-import pytest
+from collections.abc import Generator
 
+import pytest
 from playwright.sync_api import sync_playwright
+from pytest import Config, Item, Parser
+
 from python_playwright.api.api_manager import ApiManager
 from python_playwright.app.application import Application
 from python_playwright.config import settings
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: Parser) -> None:
     parser.addoption(
         "--run-integration",
         action="store_true",
@@ -15,14 +18,14 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: Config) -> None:
     config.addinivalue_line(
         "markers",
         "integration: marks tests that require external environment and credentials",
     )
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config: Config, items: list[Item]) -> None:
     if config.getoption("--run-integration"):
         return
 
@@ -35,7 +38,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="session")
-def api_context():
+def api_context() -> Generator:
     """
     Session-scoped API Request Context.
     Reused across tests for performance.
@@ -47,7 +50,7 @@ def api_context():
 
 
 @pytest.fixture(scope="session")
-def api(api_context):
+def api(api_context) -> ApiManager:  # type: ignore[no-untyped-def]
     """
     API Manager fixture. Used for API-only tests or setup/teardown.
     """
@@ -55,7 +58,7 @@ def api(api_context):
 
 
 @pytest.fixture(scope="function")
-def app(page, api):
+def app(page, api) -> Generator:  # type: ignore[no-untyped-def]
     """
     Application fixture.
     Provides Page Objects and access to API manager.
@@ -67,23 +70,27 @@ def app(page, api):
 
 
 @pytest.fixture(scope="function")
-def auth_headers(api):
+def auth_headers(api) -> dict[str, str]:  # type: ignore[no-untyped-def]
     """
     Helper fixture to get headers for default manager user.
     """
     from python_playwright.constants.headers import Headers
+
     tokens = api.get_user_tokens("manager")
     return Headers.extra_headers(tokens["token"])
 
 
 @pytest.fixture(autouse=True)
-def _validate_integration_requirements(request):
+# type: ignore[no-untyped-def]
+def _validate_integration_requirements(request) -> None:
     if "integration" not in request.keywords:
         return
 
     if settings.using_placeholder_url:
-        pytest.skip("BASE_URL is still placeholder. Configure .env.<env> for integration tests.")
+        pytest.skip(
+            "BASE_URL is still placeholder. Configure .env.<env> for integration tests.")
 
     credentials_missing = not settings.MANAGER_USERNAME or not settings.MANAGER_PASSWORD
     if credentials_missing:
-        pytest.skip("Manager credentials are not configured for integration tests.")
+        pytest.skip(
+            "Manager credentials are not configured for integration tests.")

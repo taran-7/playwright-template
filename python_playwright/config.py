@@ -1,10 +1,11 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def _resolve_env_name() -> str:
-    """Support both ENV and legacy test_env variable names."""
-    return os.getenv("ENV") or os.getenv("test_env") or "test"
+    """Resolve environment name from ENV variable."""
+    return os.getenv("ENV", "test")
 
 
 ENV_NAME = _resolve_env_name()

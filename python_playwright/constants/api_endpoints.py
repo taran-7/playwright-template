@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
-class Endpoints(str, Enum):
+
+class Endpoints(StrEnum):
     # AUTHENTICATION
     LOGIN = "/api/gateway/auth/login"
     LOGOUT = "/api/gateway/auth/logout"

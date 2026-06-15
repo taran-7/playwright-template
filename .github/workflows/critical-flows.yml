@@ -8,55 +8,86 @@ on:
         required: true
         type: choice
         options:
-          - test
+          - stage
           - beta
           - prod
-        default: "test"
+        default: "stage"
+  repository_dispatch:
+    types: [run-critical-flows-beta, run-critical-flows-box]
+
+concurrency:
+  group: critical-flows-${{ github.event.client_payload.environment || inputs.environment || 'stage' }}
+  cancel-in-progress: true
+
+env:
+  EFFECTIVE_ENV: ${{ github.event.client_payload.environment || inputs.environment || 'stage' }}
 
 jobs:
   critical-chrome:
-    name: "Critical Flows in Chrome on ${{ inputs.environment }}"
+    name: "Critical Flows in Chrome on ${{ github.event.client_payload.environment || inputs.environment }}"
     runs-on:
       labels: ubuntu-24.04-4core-16gb
 
     env:
-      BASE_URL: ${{ inputs.environment == 'prod' && vars.PROD_BASE_URL || inputs.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
-      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
-      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
-      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
-      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
-      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
-      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
-      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
-      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
-      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
-      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
-      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
-      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
-      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
-      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
-      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
-      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
-      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
-      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
-      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
-      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
-      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
-      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
-      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
-      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
-      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
-      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
-      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
-      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
-      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
-      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
-      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
-      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
-      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+      BASE_URL:
+        ${{ (github.event.client_payload.environment || inputs.environment) == 'prod' && vars.PROD_BASE_URL ||
+        (github.event.client_payload.environment || inputs.environment) == 'beta' && vars.BETA_BASE_URL ||
+        vars.STAGE_BASE_URL }}
+      TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+      USER_3768: ${{ secrets.USER_3768 }}
+      USER_3768_PASSWORD: ${{ secrets.USER_3768_PASSWORD }}
+      USER_3051: ${{ secrets.USER_3051 }}
+      USER_3051_PASSWORD: ${{ secrets.USER_3051_PASSWORD }}
+      USER_4279: ${{ secrets.USER_4279 }}
+      USER_4279_PASSWORD: ${{ secrets.USER_4279_PASSWORD }}
+      USER_4278: ${{ secrets.USER_4278 }}
+      USER_4278_PASSWORD: ${{ secrets.USER_4278_PASSWORD }}
+      USER_4278_1: ${{ secrets.USER_4278_1 }}
+      USER_4278_1_PASSWORD: ${{ secrets.USER_4278_1_PASSWORD }}
+      USER_4127: ${{ secrets.USER_4127 }}
+      USER_4127_PASSWORD: ${{ secrets.USER_4127_PASSWORD }}
+      USER_3563: ${{ secrets.USER_3563 }}
+      USER_3563_PASSWORD: ${{ secrets.USER_3563_PASSWORD }}
+      USER_3567: ${{ secrets.USER_3567 }}
+      USER_3567_PASSWORD: ${{ secrets.USER_3567_PASSWORD }}
+      USER_3570_PASSWORD: ${{ secrets.USER_3570_PASSWORD }}
+      USER_3569_PASSWORD: ${{ secrets.USER_3569_PASSWORD }}
+      USER_3576_PASSWORD: ${{ secrets.USER_3576_PASSWORD }}
+      USER_482035_PASSWORD: ${{ secrets.USER_482035_PASSWORD }}
+      USER_2365_PASSWORD: ${{ secrets.USER_2365_PASSWORD }}
+      USER_357955_PASSWORD: ${{ secrets.USER_357955_PASSWORD }}
+      USER_243071_PASSWORD: ${{ secrets.USER_243071_PASSWORD }}
+      USER_357953_PASSWORD: ${{ secrets.USER_357953_PASSWORD }}
+      USER_243088_PASSWORD: ${{ secrets.USER_243088_PASSWORD }}
+      USER_WITH_EXPLORE_PASSWORD: ${{ secrets.USER_WITH_EXPLORE_PASSWORD }}
+      USER_3435_PASSWORD: ${{ secrets.USER_3435_PASSWORD }}
+      USER_CLOUDSCORM_PASSWORD: ${{ secrets.USER_CLOUDSCORM_PASSWORD }}
+      USER_3439_PASSWORD: ${{ secrets.USER_3439_PASSWORD }}
+      SCORM3439_PASSWORD: ${{ secrets.SCORM3439_PASSWORD }}
+      USER_243094_PASSWORD: ${{ secrets.USER_243094_PASSWORD }}
+      USER_243119_PASSWORD: ${{ secrets.USER_243119_PASSWORD }}
+      USER_2504_PASSWORD: ${{ secrets.USER_2504_PASSWORD }}
+      USER_2504_1_PASSWORD: ${{ secrets.USER_2504_1_PASSWORD }}
+      USER_3434_PASSWORD: ${{ secrets.USER_3434_PASSWORD }}
+      USER_4621_PASSWORD: ${{ secrets.USER_4621_PASSWORD }}
+      USER_4622_PASSWORD: ${{ secrets.USER_4622_PASSWORD }}
+      USER_4613_PASSWORD: ${{ secrets.USER_4613_PASSWORD }}
+      USER_357956_PASSWORD: ${{ secrets.USER_357956_PASSWORD }}
+      USER_AUTOMATION_PASSWORD: ${{ secrets.USER_AUTOMATION_PASSWORD }}
+      USER_4640_PASSWORD: ${{ secrets.USER_4640_PASSWORD }}
+      USER_4639_PASSWORD: ${{ secrets.USER_4639_PASSWORD }}
+      USER_4528_PASSWORD: ${{ secrets.USER_4528_PASSWORD }}
+      USER_679595_PASSWORD: ${{ secrets.USER_679595_PASSWORD }}
+      USER_4654_PASSWORD: ${{ secrets.USER_4654_PASSWORD }}
+      USER_4633_PASSWORD: ${{ secrets.USER_4633_PASSWORD }}
+      USER_4634_PASSWORD: ${{ secrets.USER_4634_PASSWORD }}
+      USER_4649_PASSWORD: ${{ secrets.USER_4649_PASSWORD }}
+      USER_4638_PASSWORD: ${{ secrets.USER_4638_PASSWORD }}
+      USER_3573_PASSWORD: ${{ secrets.USER_3573_PASSWORD }}
+      USER_4616_PASSWORD: ${{ secrets.USER_4616_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
 
     steps:
       - name: Checkout
@@ -65,7 +96,7 @@ jobs:
       - name: Load environment variables
         run: |
           set +x  # Disable command echoing to prevent credential exposure
-          ENV_FILE=".env.${{ inputs.environment }}"
+          ENV_FILE=".env.${{ env.EFFECTIVE_ENV }}"
           if [ -f "$ENV_FILE" ]; then
             while IFS= read -r line; do
               if [[ $line =~ ^[A-Z_]+=.* ]]; then
@@ -87,8 +118,6 @@ jobs:
         if: always()
         run: |
           npm ci
-          npx playwright install
-          npx playwright install chrome
           npm install -g @testmo/testmo-cli
 
       - name: Install jq
@@ -99,19 +128,21 @@ jobs:
         shell: bash
 
       - name: Set GitHub Actions URL
-        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository
+          }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Run critical tests
+        id: run_tests_chrome
         if: always()
         run: |
-          test_env=${{ inputs.environment }} npx playwright test -g @critical --project=chrome --workers=3 --retries=1
+          test_env=${{ env.EFFECTIVE_ENV }} npx playwright test -g @critical --project=chrome --workers=2 --retries=1
         env:
           HOME: /root
 
       - name: Push results to Testmo
         if: always()
         run: |
-          browser=Chrome test_env=${{ inputs.environment }} npm run testmo:critical
+          browser=Chrome test_env=${{ env.EFFECTIVE_ENV }} npm run testmo:critical
         env:
           HOME: /root
 
@@ -119,7 +150,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-critical-chrome-${{ inputs.environment }}-${{ github.run_id }}
+          name: playwright-report-critical-chrome-${{ env.EFFECTIVE_ENV }}-${{
+            github.run_id }}
           path: playwright-report/
           retention-days: 3
 
@@ -127,20 +159,31 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: results-critical-chrome-${{ inputs.environment }}-${{ github.run_id }}
+          name: results-critical-chrome-${{ env.EFFECTIVE_ENV }}-${{ github.run_id }}
           path: results/*.xml
 
       - name: Parse test-output.json
         if: always()
         run: |
-          # Set variables
-          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
-          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
-          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
-          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
-          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
-          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
-          WORKERS=$(jq -r '.config.workers' test-output.json)
+          if [ -f "test-output.json" ]; then
+            # Set variables
+            TOTAL_DURATION=$(jq -r '.stats.duration | round // 0' test-output.json)
+            TOTAL_TESTS=$(jq -r '(.stats.expected // 0) + (.stats.unexpected // 0) + (.stats.skipped // 0) + (.stats.flaky // 0)' test-output.json)
+            PASSED_TESTS=$(jq -r '.stats.expected // 0' test-output.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected // 0' test-output.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped // 0' test-output.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky // 0' test-output.json)
+            WORKERS=$(jq -r '.config.workers // 1' test-output.json)
+          else
+            echo "test-output.json not found, using default values"
+            TOTAL_DURATION=0
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            WORKERS=0
+          fi
 
           # Output variables
           echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
@@ -173,14 +216,14 @@ jobs:
       - name: Set environment emoji
         if: always()
         run: |
-          case "${{ inputs.environment }}" in
+          case "${{ env.EFFECTIVE_ENV }}" in
             "prod")
               echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
               ;;
             "beta")
               echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
               ;;
-            "test")
+            "stage")
               echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
               ;;
             *)
@@ -196,7 +239,7 @@ jobs:
           ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
           notification-summary: |
             Critical Flows Execution Result |
-            Env ${{ env.ENV_EMOJI }}: ${{ inputs.environment }} |
+            Env ${{ env.ENV_EMOJI }}: ${{ env.EFFECTIVE_ENV }} |
             Browser: Chrome |
             Total Tests: ${{ env.TOTAL_TESTS }} |
             Workers: ${{ env.WORKERS }} |
@@ -206,53 +249,77 @@ jobs:
             Flaky 🔄: ${{ env.FLAKY_TESTS }} |
             Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
             Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
-          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+          notification-color:
+            ${{ steps.run_tests_chrome.outcome == 'success' && '#4ae632'
+            || '#FF0000' }}
 
   critical-firefox:
     needs: critical-chrome
     if: always()
-    name: "Critical Flows in Firefox on ${{ inputs.environment }}"
+    name: "Critical Flows in Firefox on ${{ github.event.client_payload.environment || inputs.environment }}"
     runs-on:
       labels: ubuntu-24.04-4core-16gb
 
     env:
-      BASE_URL: ${{ inputs.environment == 'prod' && vars.PROD_BASE_URL || inputs.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
-      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
-      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
-      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
-      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
-      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
-      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
-      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
-      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
-      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
-      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
-      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
-      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
-      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
-      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
-      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
-      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
-      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
-      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
-      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
-      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
-      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
-      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
-      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
-      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
-      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
-      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
-      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
-      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
-      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
-      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
-      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
-      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
-      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+      BASE_URL:
+        ${{ (github.event.client_payload.environment || inputs.environment) == 'prod' && vars.PROD_BASE_URL ||
+        (github.event.client_payload.environment || inputs.environment) == 'beta' && vars.BETA_BASE_URL ||
+        vars.STAGE_BASE_URL }}
+      TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+      USER_3768: ${{ secrets.USER_3768 }}
+      USER_3768_PASSWORD: ${{ secrets.USER_3768_PASSWORD }}
+      USER_3051: ${{ secrets.USER_3051 }}
+      USER_3051_PASSWORD: ${{ secrets.USER_3051_PASSWORD }}
+      USER_4279: ${{ secrets.USER_4279 }}
+      USER_4279_PASSWORD: ${{ secrets.USER_4279_PASSWORD }}
+      USER_4278: ${{ secrets.USER_4278 }}
+      USER_4278_PASSWORD: ${{ secrets.USER_4278_PASSWORD }}
+      USER_4278_1: ${{ secrets.USER_4278_1 }}
+      USER_4278_1_PASSWORD: ${{ secrets.USER_4278_1_PASSWORD }}
+      USER_4127: ${{ secrets.USER_4127 }}
+      USER_4127_PASSWORD: ${{ secrets.USER_4127_PASSWORD }}
+      USER_3563: ${{ secrets.USER_3563 }}
+      USER_3563_PASSWORD: ${{ secrets.USER_3563_PASSWORD }}
+      USER_3567: ${{ secrets.USER_3567 }}
+      USER_3567_PASSWORD: ${{ secrets.USER_3567_PASSWORD }}
+      USER_3570_PASSWORD: ${{ secrets.USER_3570_PASSWORD }}
+      USER_3569_PASSWORD: ${{ secrets.USER_3569_PASSWORD }}
+      USER_3576_PASSWORD: ${{ secrets.USER_3576_PASSWORD }}
+      USER_482035_PASSWORD: ${{ secrets.USER_482035_PASSWORD }}
+      USER_2365_PASSWORD: ${{ secrets.USER_2365_PASSWORD }}
+      USER_357955_PASSWORD: ${{ secrets.USER_357955_PASSWORD }}
+      USER_243071_PASSWORD: ${{ secrets.USER_243071_PASSWORD }}
+      USER_357953_PASSWORD: ${{ secrets.USER_357953_PASSWORD }}
+      USER_243088_PASSWORD: ${{ secrets.USER_243088_PASSWORD }}
+      USER_WITH_EXPLORE_PASSWORD: ${{ secrets.USER_WITH_EXPLORE_PASSWORD }}
+      USER_3435_PASSWORD: ${{ secrets.USER_3435_PASSWORD }}
+      USER_CLOUDSCORM_PASSWORD: ${{ secrets.USER_CLOUDSCORM_PASSWORD }}
+      USER_3439_PASSWORD: ${{ secrets.USER_3439_PASSWORD }}
+      SCORM3439_PASSWORD: ${{ secrets.SCORM3439_PASSWORD }}
+      USER_243094_PASSWORD: ${{ secrets.USER_243094_PASSWORD }}
+      USER_243119_PASSWORD: ${{ secrets.USER_243119_PASSWORD }}
+      USER_2504_PASSWORD: ${{ secrets.USER_2504_PASSWORD }}
+      USER_2504_1_PASSWORD: ${{ secrets.USER_2504_1_PASSWORD }}
+      USER_3434_PASSWORD: ${{ secrets.USER_3434_PASSWORD }}
+      USER_4621_PASSWORD: ${{ secrets.USER_4621_PASSWORD }}
+      USER_4622_PASSWORD: ${{ secrets.USER_4622_PASSWORD }}
+      USER_4613_PASSWORD: ${{ secrets.USER_4613_PASSWORD }}
+      USER_357956_PASSWORD: ${{ secrets.USER_357956_PASSWORD }}
+      USER_AUTOMATION_PASSWORD: ${{ secrets.USER_AUTOMATION_PASSWORD }}
+      USER_4640_PASSWORD: ${{ secrets.USER_4640_PASSWORD }}
+      USER_4639_PASSWORD: ${{ secrets.USER_4639_PASSWORD }}
+      USER_4528_PASSWORD: ${{ secrets.USER_4528_PASSWORD }}
+      USER_679595_PASSWORD: ${{ secrets.USER_679595_PASSWORD }}
+      USER_4654_PASSWORD: ${{ secrets.USER_4654_PASSWORD }}
+      USER_4633_PASSWORD: ${{ secrets.USER_4633_PASSWORD }}
+      USER_4634_PASSWORD: ${{ secrets.USER_4634_PASSWORD }}
+      USER_4649_PASSWORD: ${{ secrets.USER_4649_PASSWORD }}
+      USER_4638_PASSWORD: ${{ secrets.USER_4638_PASSWORD }}
+      USER_3573_PASSWORD: ${{ secrets.USER_3573_PASSWORD }}
+      USER_4616_PASSWORD: ${{ secrets.USER_4616_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
 
     steps:
       - name: Checkout
@@ -261,7 +328,7 @@ jobs:
       - name: Load environment variables
         run: |
           set +x  # Disable command echoing to prevent credential exposure
-          ENV_FILE=".env.${{ inputs.environment }}"
+          ENV_FILE=".env.${{ env.EFFECTIVE_ENV }}"
           if [ -f "$ENV_FILE" ]; then
             while IFS= read -r line; do
               if [[ $line =~ ^[A-Z_]+=.* ]]; then
@@ -283,7 +350,6 @@ jobs:
         if: always()
         run: |
           npm ci
-          npx playwright install
           npm install -g @testmo/testmo-cli
 
       - name: Install jq
@@ -294,19 +360,21 @@ jobs:
         shell: bash
 
       - name: Set GitHub Actions URL
-        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository
+          }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Run critical tests
+        id: run_tests_firefox
         if: always()
         run: |
-          test_env=${{ inputs.environment }} npx playwright test -g @critical --project=firefox --workers=3 --retries=1
+          test_env=${{ env.EFFECTIVE_ENV }} npx playwright test -g @critical --project=firefox --workers=2 --retries=1
         env:
           HOME: /root
 
       - name: Push results to Testmo
         if: always()
         run: |
-          browser=Firefox test_env=${{ inputs.environment }} npm run testmo:critical
+          browser=Firefox test_env=${{ env.EFFECTIVE_ENV }} npm run testmo:critical
         env:
           HOME: /root
 
@@ -314,7 +382,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-critical-firefox-${{ inputs.environment }}-${{ github.run_id }}
+          name: playwright-report-critical-firefox-${{ env.EFFECTIVE_ENV }}-${{
+            github.run_id }}
           path: playwright-report/
           retention-days: 3
 
@@ -322,20 +391,31 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: results-critical-firefox-${{ inputs.environment }}-${{ github.run_id }}
+          name: results-critical-firefox-${{ env.EFFECTIVE_ENV }}-${{ github.run_id }}
           path: results/*.xml
 
       - name: Parse test-output.json
         if: always()
         run: |
-          # Set variables
-          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
-          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
-          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
-          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
-          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
-          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
-          WORKERS=$(jq -r '.config.workers' test-output.json)
+          if [ -f "test-output.json" ]; then
+            # Set variables
+            TOTAL_DURATION=$(jq -r '.stats.duration | round // 0' test-output.json)
+            TOTAL_TESTS=$(jq -r '(.stats.expected // 0) + (.stats.unexpected // 0) + (.stats.skipped // 0) + (.stats.flaky // 0)' test-output.json)
+            PASSED_TESTS=$(jq -r '.stats.expected // 0' test-output.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected // 0' test-output.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped // 0' test-output.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky // 0' test-output.json)
+            WORKERS=$(jq -r '.config.workers // 1' test-output.json)
+          else
+            echo "test-output.json not found, using default values"
+            TOTAL_DURATION=0
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            WORKERS=0
+          fi
 
           # Output variables
           echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
@@ -368,14 +448,14 @@ jobs:
       - name: Set environment emoji
         if: always()
         run: |
-          case "${{ inputs.environment }}" in
+          case "${{ env.EFFECTIVE_ENV }}" in
             "prod")
               echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
               ;;
             "beta")
               echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
               ;;
-            "test")
+            "stage")
               echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
               ;;
             *)
@@ -391,7 +471,7 @@ jobs:
           ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
           notification-summary: |
             Critical Flows Execution Result |
-            Env ${{ env.ENV_EMOJI }}: ${{ inputs.environment }} |
+            Env ${{ env.ENV_EMOJI }}: ${{ env.EFFECTIVE_ENV }} |
             Browser: Firefox |
             Total Tests: ${{ env.TOTAL_TESTS }} |
             Workers: ${{ env.WORKERS }} |
@@ -401,53 +481,77 @@ jobs:
             Flaky 🔄: ${{ env.FLAKY_TESTS }} |
             Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
             Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
-          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+          notification-color:
+            ${{ steps.run_tests_firefox.outcome == 'success' &&
+            '#4ae632' || '#FF0000' }}
 
   critical-safari:
     needs: critical-firefox
     if: always()
-    name: "Critical Flows in Safari on ${{ inputs.environment }}"
+    name: "Critical Flows in Safari on ${{ github.event.client_payload.environment || inputs.environment }}"
     runs-on:
       labels: ubuntu-24.04-4core-16gb
 
     env:
-      BASE_URL: ${{ inputs.environment == 'prod' && vars.PROD_BASE_URL || inputs.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
-      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
-      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
-      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
-      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
-      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
-      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
-      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
-      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
-      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
-      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
-      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
-      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
-      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
-      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
-      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
-      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
-      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
-      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
-      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
-      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
-      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
-      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
-      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
-      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
-      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
-      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
-      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
-      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
-      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
-      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
-      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
-      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
-      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+      BASE_URL:
+        ${{ (github.event.client_payload.environment || inputs.environment) == 'prod' && vars.PROD_BASE_URL ||
+        (github.event.client_payload.environment || inputs.environment) == 'beta' && vars.BETA_BASE_URL ||
+        vars.STAGE_BASE_URL }}
+      TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+      USER_3768: ${{ secrets.USER_3768 }}
+      USER_3768_PASSWORD: ${{ secrets.USER_3768_PASSWORD }}
+      USER_3051: ${{ secrets.USER_3051 }}
+      USER_3051_PASSWORD: ${{ secrets.USER_3051_PASSWORD }}
+      USER_4279: ${{ secrets.USER_4279 }}
+      USER_4279_PASSWORD: ${{ secrets.USER_4279_PASSWORD }}
+      USER_4278: ${{ secrets.USER_4278 }}
+      USER_4278_PASSWORD: ${{ secrets.USER_4278_PASSWORD }}
+      USER_4278_1: ${{ secrets.USER_4278_1 }}
+      USER_4278_1_PASSWORD: ${{ secrets.USER_4278_1_PASSWORD }}
+      USER_4127: ${{ secrets.USER_4127 }}
+      USER_4127_PASSWORD: ${{ secrets.USER_4127_PASSWORD }}
+      USER_3563: ${{ secrets.USER_3563 }}
+      USER_3563_PASSWORD: ${{ secrets.USER_3563_PASSWORD }}
+      USER_3567: ${{ secrets.USER_3567 }}
+      USER_3567_PASSWORD: ${{ secrets.USER_3567_PASSWORD }}
+      USER_3570_PASSWORD: ${{ secrets.USER_3570_PASSWORD }}
+      USER_3569_PASSWORD: ${{ secrets.USER_3569_PASSWORD }}
+      USER_3576_PASSWORD: ${{ secrets.USER_3576_PASSWORD }}
+      USER_482035_PASSWORD: ${{ secrets.USER_482035_PASSWORD }}
+      USER_2365_PASSWORD: ${{ secrets.USER_2365_PASSWORD }}
+      USER_357955_PASSWORD: ${{ secrets.USER_357955_PASSWORD }}
+      USER_243071_PASSWORD: ${{ secrets.USER_243071_PASSWORD }}
+      USER_357953_PASSWORD: ${{ secrets.USER_357953_PASSWORD }}
+      USER_243088_PASSWORD: ${{ secrets.USER_243088_PASSWORD }}
+      USER_WITH_EXPLORE_PASSWORD: ${{ secrets.USER_WITH_EXPLORE_PASSWORD }}
+      USER_3435_PASSWORD: ${{ secrets.USER_3435_PASSWORD }}
+      USER_CLOUDSCORM_PASSWORD: ${{ secrets.USER_CLOUDSCORM_PASSWORD }}
+      USER_3439_PASSWORD: ${{ secrets.USER_3439_PASSWORD }}
+      SCORM3439_PASSWORD: ${{ secrets.SCORM3439_PASSWORD }}
+      USER_243094_PASSWORD: ${{ secrets.USER_243094_PASSWORD }}
+      USER_243119_PASSWORD: ${{ secrets.USER_243119_PASSWORD }}
+      USER_2504_PASSWORD: ${{ secrets.USER_2504_PASSWORD }}
+      USER_2504_1_PASSWORD: ${{ secrets.USER_2504_1_PASSWORD }}
+      USER_3434_PASSWORD: ${{ secrets.USER_3434_PASSWORD }}
+      USER_4621_PASSWORD: ${{ secrets.USER_4621_PASSWORD }}
+      USER_4622_PASSWORD: ${{ secrets.USER_4622_PASSWORD }}
+      USER_4613_PASSWORD: ${{ secrets.USER_4613_PASSWORD }}
+      USER_357956_PASSWORD: ${{ secrets.USER_357956_PASSWORD }}
+      USER_AUTOMATION_PASSWORD: ${{ secrets.USER_AUTOMATION_PASSWORD }}
+      USER_4640_PASSWORD: ${{ secrets.USER_4640_PASSWORD }}
+      USER_4639_PASSWORD: ${{ secrets.USER_4639_PASSWORD }}
+      USER_4528_PASSWORD: ${{ secrets.USER_4528_PASSWORD }}
+      USER_679595_PASSWORD: ${{ secrets.USER_679595_PASSWORD }}
+      USER_4654_PASSWORD: ${{ secrets.USER_4654_PASSWORD }}
+      USER_4633_PASSWORD: ${{ secrets.USER_4633_PASSWORD }}
+      USER_4634_PASSWORD: ${{ secrets.USER_4634_PASSWORD }}
+      USER_4649_PASSWORD: ${{ secrets.USER_4649_PASSWORD }}
+      USER_4638_PASSWORD: ${{ secrets.USER_4638_PASSWORD }}
+      USER_3573_PASSWORD: ${{ secrets.USER_3573_PASSWORD }}
+      USER_4616_PASSWORD: ${{ secrets.USER_4616_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
 
     steps:
       - name: Checkout
@@ -456,7 +560,7 @@ jobs:
       - name: Load environment variables
         run: |
           set +x  # Disable command echoing to prevent credential exposure
-          ENV_FILE=".env.${{ inputs.environment }}"
+          ENV_FILE=".env.${{ env.EFFECTIVE_ENV }}"
           if [ -f "$ENV_FILE" ]; then
             while IFS= read -r line; do
               if [[ $line =~ ^[A-Z_]+=.* ]]; then
@@ -478,7 +582,6 @@ jobs:
         if: always()
         run: |
           npm ci
-          npx playwright install
           npm install -g @testmo/testmo-cli
 
       - name: Install jq
@@ -489,19 +592,21 @@ jobs:
         shell: bash
 
       - name: Set GitHub Actions URL
-        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository
+          }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Run critical tests
+        id: run_tests_safari
         if: always()
         run: |
-          test_env=${{ inputs.environment }} npx playwright test -g @critical --project=safari --workers=3 --retries=1
+          test_env=${{ env.EFFECTIVE_ENV }} npx playwright test -g @critical --project=safari --workers=2 --retries=1
         env:
           HOME: /root
 
       - name: Push results to Testmo
         if: always()
         run: |
-          browser=Safari test_env=${{ inputs.environment }} npm run testmo:critical
+          browser=Safari test_env=${{ env.EFFECTIVE_ENV }} npm run testmo:critical
         env:
           HOME: /root
 
@@ -509,7 +614,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-critical-safari-${{ inputs.environment }}-${{ github.run_id }}
+          name: playwright-report-critical-safari-${{ env.EFFECTIVE_ENV }}-${{
+            github.run_id }}
           path: playwright-report/
           retention-days: 3
 
@@ -517,20 +623,31 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: results-critical-safari-${{ inputs.environment }}-${{ github.run_id }}
+          name: results-critical-safari-${{ env.EFFECTIVE_ENV }}-${{ github.run_id }}
           path: results/*.xml
 
       - name: Parse test-output.json
         if: always()
         run: |
-          # Set variables
-          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
-          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
-          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
-          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
-          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
-          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
-          WORKERS=$(jq -r '.config.workers' test-output.json)
+          if [ -f "test-output.json" ]; then
+            # Set variables
+            TOTAL_DURATION=$(jq -r '.stats.duration | round // 0' test-output.json)
+            TOTAL_TESTS=$(jq -r '(.stats.expected // 0) + (.stats.unexpected // 0) + (.stats.skipped // 0) + (.stats.flaky // 0)' test-output.json)
+            PASSED_TESTS=$(jq -r '.stats.expected // 0' test-output.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected // 0' test-output.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped // 0' test-output.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky // 0' test-output.json)
+            WORKERS=$(jq -r '.config.workers // 1' test-output.json)
+          else
+            echo "test-output.json not found, using default values"
+            TOTAL_DURATION=0
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            WORKERS=0
+          fi
 
           # Output variables
           echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
@@ -563,14 +680,14 @@ jobs:
       - name: Set environment emoji
         if: always()
         run: |
-          case "${{ inputs.environment }}" in
+          case "${{ env.EFFECTIVE_ENV }}" in
             "prod")
               echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
               ;;
             "beta")
               echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
               ;;
-            "test")
+            "stage")
               echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
               ;;
             *)
@@ -586,7 +703,7 @@ jobs:
           ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
           notification-summary: |
             Critical Flows Execution Result |
-            Env ${{ env.ENV_EMOJI }}: ${{ inputs.environment }} |
+            Env ${{ env.ENV_EMOJI }}: ${{ env.EFFECTIVE_ENV }} |
             Browser: Safari |
             Total Tests: ${{ env.TOTAL_TESTS }} |
             Workers: ${{ env.WORKERS }} |
@@ -596,62 +713,99 @@ jobs:
             Flaky 🔄: ${{ env.FLAKY_TESTS }} |
             Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
             Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
-          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+          notification-color:
+            ${{ steps.run_tests_safari.outcome == 'success' && '#4ae632'
+            || '#FF0000' }}
 
   critical-api:
     needs: critical-safari
     if: always()
-    name: "Critical API Flows on ${{ inputs.environment }}"
+    name: "Critical API Flows on ${{ github.event.client_payload.environment || inputs.environment }}"
     runs-on:
       labels: ubuntu-24.04-4core-16gb
 
     env:
-      BASE_URL: ${{ inputs.environment == 'prod' && vars.PROD_BASE_URL || inputs.environment == 'beta' && vars.BETA_BASE_URL || vars.TEST_BASE_URL }}
-      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
-      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
-      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
-      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
-      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
-      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
-      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
-      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
-      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
-      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
-      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
-      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
-      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
-      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
-      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
-      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
-      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
-      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
-      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
-      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
-      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
-      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
-      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
-      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
-      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
-      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
-      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
-      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
-      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
-      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
-      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
-      USER_ROLE_12_PASSWORD: ${{ secrets.USER_ROLE_12_PASSWORD }}
-      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+      BASE_URL:
+        ${{ (github.event.client_payload.environment || inputs.environment) == 'prod' && vars.PROD_BASE_URL ||
+        (github.event.client_payload.environment || inputs.environment) == 'beta' && vars.BETA_BASE_URL ||
+        vars.STAGE_BASE_URL }}
+      TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+      USER_3768: ${{ secrets.USER_3768 }}
+      USER_3768_PASSWORD: ${{ secrets.USER_3768_PASSWORD }}
+      USER_3051: ${{ secrets.USER_3051 }}
+      USER_3051_PASSWORD: ${{ secrets.USER_3051_PASSWORD }}
+      USER_4279: ${{ secrets.USER_4279 }}
+      USER_4279_PASSWORD: ${{ secrets.USER_4279_PASSWORD }}
+      USER_4278: ${{ secrets.USER_4278 }}
+      USER_4278_PASSWORD: ${{ secrets.USER_4278_PASSWORD }}
+      USER_4278_1: ${{ secrets.USER_4278_1 }}
+      USER_4278_1_PASSWORD: ${{ secrets.USER_4278_1_PASSWORD }}
+      USER_4127: ${{ secrets.USER_4127 }}
+      USER_4127_PASSWORD: ${{ secrets.USER_4127_PASSWORD }}
+      USER_3563: ${{ secrets.USER_3563 }}
+      USER_3563_PASSWORD: ${{ secrets.USER_3563_PASSWORD }}
+      USER_3567: ${{ secrets.USER_3567 }}
+      USER_3567_PASSWORD: ${{ secrets.USER_3567_PASSWORD }}
+      USER_3570_PASSWORD: ${{ secrets.USER_3570_PASSWORD }}
+      USER_3569_PASSWORD: ${{ secrets.USER_3569_PASSWORD }}
+      USER_3576_PASSWORD: ${{ secrets.USER_3576_PASSWORD }}
+      USER_482035_PASSWORD: ${{ secrets.USER_482035_PASSWORD }}
+      USER_2365_PASSWORD: ${{ secrets.USER_2365_PASSWORD }}
+      USER_357955_PASSWORD: ${{ secrets.USER_357955_PASSWORD }}
+      USER_243071_PASSWORD: ${{ secrets.USER_243071_PASSWORD }}
+      USER_357953_PASSWORD: ${{ secrets.USER_357953_PASSWORD }}
+      USER_243088_PASSWORD: ${{ secrets.USER_243088_PASSWORD }}
+      USER_WITH_EXPLORE_PASSWORD: ${{ secrets.USER_WITH_EXPLORE_PASSWORD }}
+      USER_3435_PASSWORD: ${{ secrets.USER_3435_PASSWORD }}
+      USER_CLOUDSCORM_PASSWORD: ${{ secrets.USER_CLOUDSCORM_PASSWORD }}
+      USER_3439_PASSWORD: ${{ secrets.USER_3439_PASSWORD }}
+      SCORM3439_PASSWORD: ${{ secrets.SCORM3439_PASSWORD }}
+      USER_243094_PASSWORD: ${{ secrets.USER_243094_PASSWORD }}
+      USER_243119_PASSWORD: ${{ secrets.USER_243119_PASSWORD }}
+      USER_2504_PASSWORD: ${{ secrets.USER_2504_PASSWORD }}
+      USER_2504_1_PASSWORD: ${{ secrets.USER_2504_1_PASSWORD }}
+      USER_3434_PASSWORD: ${{ secrets.USER_3434_PASSWORD }}
+      USER_4621_PASSWORD: ${{ secrets.USER_4621_PASSWORD }}
+      USER_4622_PASSWORD: ${{ secrets.USER_4622_PASSWORD }}
+      USER_4613_PASSWORD: ${{ secrets.USER_4613_PASSWORD }}
+      USER_357956_PASSWORD: ${{ secrets.USER_357956_PASSWORD }}
+      USER_AUTOMATION_PASSWORD: ${{ secrets.USER_AUTOMATION_PASSWORD }}
+      USER_4640_PASSWORD: ${{ secrets.USER_4640_PASSWORD }}
+      USER_4639_PASSWORD: ${{ secrets.USER_4639_PASSWORD }}
+      USER_4528_PASSWORD: ${{ secrets.USER_4528_PASSWORD }}
+      USER_679595_PASSWORD: ${{ secrets.USER_679595_PASSWORD }}
+      USER_4654_PASSWORD: ${{ secrets.USER_4654_PASSWORD }}
+      USER_4633_PASSWORD: ${{ secrets.USER_4633_PASSWORD }}
+      USER_4634_PASSWORD: ${{ secrets.USER_4634_PASSWORD }}
+      USER_4649_PASSWORD: ${{ secrets.USER_4649_PASSWORD }}
+      USER_4638_PASSWORD: ${{ secrets.USER_4638_PASSWORD }}
+      USER_3573_PASSWORD: ${{ secrets.USER_3573_PASSWORD }}
+      USER_4616_PASSWORD: ${{ secrets.USER_4616_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check if critical API tests exist
+        id: check_tests
+        run: |
+          # Search for tests with both @critical and @api tags
+          if grep -rE "@critical.*@api|@api.*@critical" tests/ --include="*.ts" > /dev/null 2>&1; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+            echo "Critical API tests found"
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+            echo "No critical API tests found - remaining steps will be skipped"
+          fi
+
       - name: Load environment variables
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           set +x  # Disable command echoing to prevent credential exposure
-          ENV_FILE=".env.${{ inputs.environment }}"
+          ENV_FILE=".env.${{ env.EFFECTIVE_ENV }}"
           if [ -f "$ENV_FILE" ]; then
             while IFS= read -r line; do
               if [[ $line =~ ^[A-Z_]+=.* ]]; then
@@ -662,70 +816,87 @@ jobs:
           set -x  # Re-enable command echoing
 
       - name: Set up Node.js
+        if: steps.check_tests.outputs.has_tests == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Create .auth directory
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: mkdir -p .auth
 
       - name: Install dependencies
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           npm ci
-          npx playwright install
           npm install -g @testmo/testmo-cli
 
       - name: Install jq
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           apt-get update
           apt-get install -y jq
         shell: bash
 
       - name: Set GitHub Actions URL
-        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository
+          }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Run critical API tests
-        if: always()
+        id: run_tests_api
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          test_env=${{ inputs.environment }} npx playwright test -g "@critical.*@api|@api.*@critical" --workers=3 --retries=1
+          test_env=${{ env.EFFECTIVE_ENV }} npx playwright test -g "@critical.*@api|@api.*@critical" --workers=2 --retries=1
         env:
           HOME: /root
 
       - name: Push results to Testmo
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          browser=API test_env=${{ inputs.environment }} npm run testmo:critical
+          browser=API test_env=${{ env.EFFECTIVE_ENV }} npm run testmo:critical
         env:
           HOME: /root
 
       - name: Upload test report
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-critical-api-${{ inputs.environment }}-${{ github.run_id }}
+          name:
+            playwright-report-critical-api-${{ env.EFFECTIVE_ENV }}-${{ github.run_id
+            }}
           path: playwright-report/
           retention-days: 3
 
       - name: Upload test results
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: results-critical-api-${{ inputs.environment }}-${{ github.run_id }}
+          name: results-critical-api-${{ env.EFFECTIVE_ENV }}-${{ github.run_id }}
           path: results/*.xml
 
       - name: Parse test-output.json
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          # Set variables
-          TOTAL_DURATION=$(jq -r '.stats.duration | round' test-output.json)
-          TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-output.json)
-          PASSED_TESTS=$(jq -r '.stats.expected' test-output.json)
-          FAILED_TESTS=$(jq -r '.stats.unexpected' test-output.json)
-          SKIPPED_TESTS=$(jq -r '.stats.skipped' test-output.json)
-          FLAKY_TESTS=$(jq -r '.stats.flaky' test-output.json)
-          WORKERS=$(jq -r '.config.workers' test-output.json)
+          if [ -f "test-output.json" ]; then
+            # Set variables
+            TOTAL_DURATION=$(jq -r '.stats.duration | round // 0' test-output.json)
+            TOTAL_TESTS=$(jq -r '(.stats.expected // 0) + (.stats.unexpected // 0) + (.stats.skipped // 0) + (.stats.flaky // 0)' test-output.json)
+            PASSED_TESTS=$(jq -r '.stats.expected // 0' test-output.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected // 0' test-output.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped // 0' test-output.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky // 0' test-output.json)
+            WORKERS=$(jq -r '.config.workers // 1' test-output.json)
+          else
+            echo "test-output.json not found, using default values"
+            TOTAL_DURATION=0
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            WORKERS=0
+          fi
 
           # Output variables
           echo "TOTAL_DURATION=$TOTAL_DURATION" >> $GITHUB_ENV
@@ -737,7 +908,7 @@ jobs:
           echo "WORKERS=$WORKERS" >> $GITHUB_ENV
 
       - name: Use parsed variables
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           echo "Total Duration: ${{ env.TOTAL_DURATION }}"
           echo "Total Tests: ${{ env.TOTAL_TESTS }}"
@@ -747,7 +918,7 @@ jobs:
           echo "Flaky Tests: ${{ env.FLAKY_TESTS }}"
 
       - name: Calculate duration
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           DURATION_MS=${{ env.TOTAL_DURATION }}
           DURATION_SECONDS=$((DURATION_MS / 1000))
@@ -756,16 +927,16 @@ jobs:
           echo "DURATION_FORMATTED=${DURATION_MINUTES}m ${DURATION_REMAINING_SECONDS}s" >> $GITHUB_ENV
 
       - name: Set environment emoji
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          case "${{ inputs.environment }}" in
+          case "${{ env.EFFECTIVE_ENV }}" in
             "prod")
               echo "ENV_EMOJI=🚀" >> $GITHUB_ENV
               ;;
             "beta")
               echo "ENV_EMOJI=🧪" >> $GITHUB_ENV
               ;;
-            "test")
+            "stage")
               echo "ENV_EMOJI=🔬" >> $GITHUB_ENV
               ;;
             *)
@@ -774,14 +945,14 @@ jobs:
           esac
 
       - name: Notify MS Teams
-        if: always()
+        if: steps.check_tests.outputs.has_tests == 'true'
         uses: jdcargile/ms-teams-notification@v1.3
         with:
           github-token: ${{ github.token }}
           ms-teams-webhook-uri: ${{ secrets.AUTOTESTS_REPORTS_WEBHOOK_URL }}
           notification-summary: |
             Critical API Flows Execution Result |
-            Env ${{ env.ENV_EMOJI }}: ${{ inputs.environment }} |
+            Env ${{ env.ENV_EMOJI }}: ${{ env.EFFECTIVE_ENV }} |
             Type: API |
             Total Tests: ${{ env.TOTAL_TESTS }} |
             Workers: ${{ env.WORKERS }} |
@@ -791,4 +962,6 @@ jobs:
             Flaky 🔄: ${{ env.FLAKY_TESTS }} |
             Total Duration ⏱: ${{ env.DURATION_FORMATTED }} (${{ env.TOTAL_DURATION }} ms)
             Link Testmo runs ${{ secrets.TESTMO_RUNS_URL }}
-          notification-color: ${{ env.FAILED_TESTS > 0 && '#FF0000' || '#4ae632' }}
+          notification-color:
+            ${{ steps.run_tests_api.outcome == 'success' && '#4ae632' ||
+            '#FF0000' }}

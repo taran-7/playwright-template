@@ -8,10 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - test
+          - stage
           - beta
           - prod
-        default: "test"
+        default: "stage"
       tag:
         description: "Test tag (ignored if custom_tag is set)"
         required: true
@@ -60,46 +60,66 @@ on:
 
 jobs:
   regression:
-    name: "Regression: ${{ inputs.environment }} - ${{ inputs.custom_tag || inputs.tag }} - ${{ inputs.browser }}"
+    name: "Regression: ${{ inputs.environment }} - ${{ inputs.custom_tag ||
+      inputs.tag }} - ${{ inputs.browser }}"
     runs-on:
       labels: ubuntu-24.04-4core-16gb
 
     env:
-      CI_INTEGRATION_TOKEN: ${{ secrets.CI_INTEGRATION_TOKEN }}
-      MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
-      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
-      USER_STANDARD_USERNAME: ${{ secrets.USER_STANDARD_USERNAME }}
-      USER_STANDARD_PASSWORD: ${{ secrets.USER_STANDARD_PASSWORD }}
-      USER_LIMITED_USERNAME: ${{ secrets.USER_LIMITED_USERNAME }}
-      USER_LIMITED_PASSWORD: ${{ secrets.USER_LIMITED_PASSWORD }}
-      USER_FEATURE_A_USERNAME: ${{ secrets.USER_FEATURE_A_USERNAME }}
-      USER_FEATURE_A_PASSWORD: ${{ secrets.USER_FEATURE_A_PASSWORD }}
-      USER_FEATURE_B_USERNAME: ${{ secrets.USER_FEATURE_B_USERNAME }}
-      USER_FEATURE_B_PASSWORD: ${{ secrets.USER_FEATURE_B_PASSWORD }}
-      USER_FEATURE_C_USERNAME: ${{ secrets.USER_FEATURE_C_USERNAME }}
-      USER_FEATURE_C_PASSWORD: ${{ secrets.USER_FEATURE_C_PASSWORD }}
-      USER_FEATURE_D_USERNAME: ${{ secrets.USER_FEATURE_D_USERNAME }}
-      USER_FEATURE_D_PASSWORD: ${{ secrets.USER_FEATURE_D_PASSWORD }}
-      USER_FEATURE_E_USERNAME: ${{ secrets.USER_FEATURE_E_USERNAME }}
-      USER_FEATURE_E_PASSWORD: ${{ secrets.USER_FEATURE_E_PASSWORD }}
-      USER_ROLE_1_PASSWORD: ${{ secrets.USER_ROLE_1_PASSWORD }}
-      USER_ROLE_2_PASSWORD: ${{ secrets.USER_ROLE_2_PASSWORD }}
-      USER_ROLE_3_PASSWORD: ${{ secrets.USER_ROLE_3_PASSWORD }}
-      USER_ROLE_4_PASSWORD: ${{ secrets.USER_ROLE_4_PASSWORD }}
-      USER_ROLE_5_PASSWORD: ${{ secrets.USER_ROLE_5_PASSWORD }}
-      USER_ROLE_6_PASSWORD: ${{ secrets.USER_ROLE_6_PASSWORD }}
-      USER_ROLE_7_PASSWORD: ${{ secrets.USER_ROLE_7_PASSWORD }}
-      USER_ROLE_8_PASSWORD: ${{ secrets.USER_ROLE_8_PASSWORD }}
-      USER_ROLE_9_PASSWORD: ${{ secrets.USER_ROLE_9_PASSWORD }}
-      USER_EXPLORE_PASSWORD: ${{ secrets.USER_EXPLORE_PASSWORD }}
-      USER_ROLE_10_PASSWORD: ${{ secrets.USER_ROLE_10_PASSWORD }}
-      USER_SCORM_PASSWORD: ${{ secrets.USER_SCORM_PASSWORD }}
-      USER_ROLE_11_PASSWORD: ${{ secrets.USER_ROLE_11_PASSWORD }}
-      SCORM_PASSWORD: ${{ secrets.SCORM_PASSWORD }}
-      USER_ROLE_13_PASSWORD: ${{ secrets.USER_ROLE_13_PASSWORD }}
+      TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+      USER_3768: ${{ secrets.USER_3768 }}
+      USER_3768_PASSWORD: ${{ secrets.USER_3768_PASSWORD }}
+      USER_3051: ${{ secrets.USER_3051 }}
+      USER_3051_PASSWORD: ${{ secrets.USER_3051_PASSWORD }}
+      USER_4279: ${{ secrets.USER_4279 }}
+      USER_4279_PASSWORD: ${{ secrets.USER_4279_PASSWORD }}
+      USER_4278: ${{ secrets.USER_4278 }}
+      USER_4278_PASSWORD: ${{ secrets.USER_4278_PASSWORD }}
+      USER_4278_1: ${{ secrets.USER_4278_1 }}
+      USER_4278_1_PASSWORD: ${{ secrets.USER_4278_1_PASSWORD }}
+      USER_4127: ${{ secrets.USER_4127 }}
+      USER_4127_PASSWORD: ${{ secrets.USER_4127_PASSWORD }}
+      USER_3563: ${{ secrets.USER_3563 }}
+      USER_3563_PASSWORD: ${{ secrets.USER_3563_PASSWORD }}
+      USER_3567: ${{ secrets.USER_3567 }}
+      USER_3567_PASSWORD: ${{ secrets.USER_3567_PASSWORD }}
+      USER_3570_PASSWORD: ${{ secrets.USER_3570_PASSWORD }}
+      USER_3569_PASSWORD: ${{ secrets.USER_3569_PASSWORD }}
+      USER_3576_PASSWORD: ${{ secrets.USER_3576_PASSWORD }}
+      USER_482035_PASSWORD: ${{ secrets.USER_482035_PASSWORD }}
+      USER_2365_PASSWORD: ${{ secrets.USER_2365_PASSWORD }}
+      USER_357955_PASSWORD: ${{ secrets.USER_357955_PASSWORD }}
+      USER_243071_PASSWORD: ${{ secrets.USER_243071_PASSWORD }}
+      USER_357953_PASSWORD: ${{ secrets.USER_357953_PASSWORD }}
+      USER_243088_PASSWORD: ${{ secrets.USER_243088_PASSWORD }}
+      USER_WITH_EXPLORE_PASSWORD: ${{ secrets.USER_WITH_EXPLORE_PASSWORD }}
+      USER_3435_PASSWORD: ${{ secrets.USER_3435_PASSWORD }}
+      USER_CLOUDSCORM_PASSWORD: ${{ secrets.USER_CLOUDSCORM_PASSWORD }}
+      USER_3439_PASSWORD: ${{ secrets.USER_3439_PASSWORD }}
+      SCORM3439_PASSWORD: ${{ secrets.SCORM3439_PASSWORD }}
+      USER_243119_PASSWORD: ${{ secrets.USER_243119_PASSWORD }}
+      USER_2504_PASSWORD: ${{ secrets.USER_2504_PASSWORD }}
+      USER_2504_1_PASSWORD: ${{ secrets.USER_2504_1_PASSWORD }}
+      USER_3434_PASSWORD: ${{ secrets.USER_3434_PASSWORD }}
+      USER_4621_PASSWORD: ${{ secrets.USER_4621_PASSWORD }}
+      USER_4622_PASSWORD: ${{ secrets.USER_4622_PASSWORD }}
+      USER_4613_PASSWORD: ${{ secrets.USER_4613_PASSWORD }}
+      USER_357956_PASSWORD: ${{ secrets.USER_357956_PASSWORD }}
+      USER_AUTOMATION_PASSWORD: ${{ secrets.USER_AUTOMATION_PASSWORD }}
+      USER_4640_PASSWORD: ${{ secrets.USER_4640_PASSWORD }}
+      USER_4639_PASSWORD: ${{ secrets.USER_4639_PASSWORD }}
+      USER_4528_PASSWORD: ${{ secrets.USER_4528_PASSWORD }}
+      USER_679595_PASSWORD: ${{ secrets.USER_679595_PASSWORD }}
+      USER_4654_PASSWORD: ${{ secrets.USER_4654_PASSWORD }}
+      USER_4633_PASSWORD: ${{ secrets.USER_4633_PASSWORD }}
+      USER_4634_PASSWORD: ${{ secrets.USER_4634_PASSWORD }}
+      USER_4649_PASSWORD: ${{ secrets.USER_4649_PASSWORD }}
+      USER_4638_PASSWORD: ${{ secrets.USER_4638_PASSWORD }}
+      USER_3573_PASSWORD: ${{ secrets.USER_3573_PASSWORD }}
+      USER_4616_PASSWORD: ${{ secrets.USER_4616_PASSWORD }}
 
     container:
-      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
 
     steps:
       - name: Checkout code
@@ -123,8 +143,6 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npx playwright install
-          npx playwright install chrome
           npm install -g @testmo/testmo-cli
 
       - name: Install jq
@@ -134,7 +152,8 @@ jobs:
         shell: bash
 
       - name: Set GitHub Actions URL
-        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        run: echo "GITHUB_RUN_URL=${{ github.server_url }}/${{ github.repository
+          }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Set effective tag
         run: |
@@ -150,10 +169,24 @@ jobs:
         env:
           HOME: /root
 
+      - name: Set Testmo type
+        if: always()
+        run: |
+          TAG="${{ env.EFFECTIVE_TAG }}"
+          if [[ "$TAG" == "@critical" ]]; then
+            echo "TESTMO_TYPE=critical" >> $GITHUB_ENV
+          elif [[ "$TAG" == "@smoke" ]]; then
+            echo "TESTMO_TYPE=smoke" >> $GITHUB_ENV
+          elif [[ "${{ inputs.browser }}" == "api-tests" ]]; then
+            echo "TESTMO_TYPE=api" >> $GITHUB_ENV
+          else
+            echo "TESTMO_TYPE=regression" >> $GITHUB_ENV
+          fi
+
       - name: Push results to Testmo
         if: always()
         run: |
-          browser=${{ inputs.browser }} test_env=${{ inputs.environment }} npm run testmo:regression
+          browser=${{ inputs.browser }} test_env=${{ inputs.environment }} npm run testmo:${{ env.TESTMO_TYPE }}
         env:
           HOME: /root
 

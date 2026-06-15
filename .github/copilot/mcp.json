@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "X-MCP-Toolsets": "repos,issues,pull_requests,actions"
+      },
+      "tools": [
+        "get_file_contents",
+        "search_code",
+        "issue_read",
+        "pull_request_read",
+        "list_workflow_runs",
+        "get_workflow_run",
+        "get_workflow_run_logs",
+        "list_workflow_jobs",
+        "push_files",
+        "create_or_update_file",
+        "create_pull_request"
+      ]
+    },
+    "playwright": {
+      "type": "local",
+      "command": "npx",
+      "tools": ["*"],
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=chrome",
+        "--caps=testing",
+        "--viewport-size=1420x720",
+        "--test-id-attribute=data-testid",
+        "--ignore-https-errors"
+      ]
+    }
+  }
+}

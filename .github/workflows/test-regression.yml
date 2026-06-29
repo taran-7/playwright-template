@@ -1,8 +1,6 @@
 name: Stage regression tests
 
 on:
-  schedule:
-    - cron: "0 20 * * *" # Run every day at 21:00 CET / 22:00 CEST Berlin time
   workflow_dispatch:
 
 jobs:

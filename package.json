@@ -67,29 +67,29 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@faker-js/faker": "^10.4.0",
-    "@playwright/test": "^1.61.0",
-    "@types/node": "^25.9.3",
-    "@typescript-eslint/eslint-plugin": "^8.61.0",
-    "@typescript-eslint/parser": "^8.61.0",
+    "@faker-js/faker": "^10.5.0",
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.62.0",
+    "@typescript-eslint/parser": "^8.62.0",
     "cross-env": "^10.1.0",
     "dayjs": "^1.11.21",
     "dotenv": "^17.4.2",
-    "eslint": "^10.0.0",
+    "eslint": "^10.6.0",
     "eslint-plugin-playwright": "^2.10.4",
     "eslint-plugin-promise": "^7.3.0",
-    "globals": "^17.6.0",
-    "prettier": "3.8.4",
+    "globals": "^17.7.0",
+    "prettier": "3.9.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.0"
+    "typescript-eslint": "^8.62.0"
   },
   "overrides": {
-    "uuid": "^11.1.1"
+    "uuid": "^14.0.1"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",
     "googleapis": "^173.0.0",
-    "lint-staged": "^17.0.7"
+    "lint-staged": "^17.0.8"
   }
 }
